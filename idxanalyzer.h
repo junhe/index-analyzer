@@ -2,6 +2,9 @@
 #define __idxanalyzer_h__
 
 #include <vector>
+#include <string>
+#include <iostream>
+#include <fstream>
 using namespace std;
 
 
@@ -21,7 +24,7 @@ class IdxEntry {
 };
 
 
-class IdxSignature {
+class IdxSigUnit {
     off_t Init_offset;
     vector <off_t> Offset_stride;
     off_t Init_length;
@@ -29,9 +32,14 @@ class IdxSignature {
     int Req_count;
 };
 
-class IdxAnalyzer {
-    
-
+// Each index has its own signature
+class IdxSignature {
+    public:
+        IdxSignature() {}
+        bool openTraceFile( const char *fpath );
+        bool getNextEntry(IdxEntry &idx_entry);
+    private:
+        ifstream idx_file;
 };
 
 
