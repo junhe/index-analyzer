@@ -25,11 +25,10 @@ class IdxEntry {
 
 
 class IdxSigUnit {
-    off_t Init_offset;
-    vector <off_t> Offset_stride;
-    off_t Init_length;
-    vector <off_t> Length_stride;
-    int Req_count;
+    off_t init_offset;
+    vector <off_t> offset_stride;
+    off_t init_length;
+    vector <off_t> length_stride;
 };
 
 // Each index has its own signature
@@ -38,8 +37,11 @@ class IdxSignature {
         IdxSignature() {}
         bool openTraceFile( const char *fpath );
         bool getNextEntry(IdxEntry &idx_entry);
+        bool bufferEntries(); // read some entries from trace file and
+                              // put them in sigList
     private:
         ifstream idx_file;
+        vector<IdxSigUnit> sig_list;
 };
 
 

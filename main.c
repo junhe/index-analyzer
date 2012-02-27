@@ -7,11 +7,9 @@ using namespace std;
 int main(int argc, char ** argv)
 {
     IdxSignature mysig;
-    IdxEntry ientry;
     
     mysig.openTraceFile("trace.txt");
-    mysig.getNextEntry(ientry);
-
+    mysig.bufferEntries();
     cout<<"hello"<<endl;
     return 0;
 }
