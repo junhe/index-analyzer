@@ -31,7 +31,7 @@ bool IdxSignature::getNextEntry( IdxEntry &idx_entry )
     }
 
     getline(idx_file, line);
-    cout << line << endl;
+    //cout << line << endl;
 
     vector<string> tokens;
     vector<string>::iterator iter;
@@ -71,8 +71,15 @@ bool IdxSignature::bufferEntries()
     int bufsize = 16;
 
     while ( bufsize-- > 0 && getNextEntry( h_entry ) ) {
-        cout << "---" << h_entry.Logical_offset << endl;
+        //cout << "---" << h_entry.Logical_offset << endl;
+        entry_buf.push_back(h_entry);
     }
+    /*
+    vector<IdxEntry>::iterator iter;
+    for (iter = entry_buf.begin() ; iter != entry_buf.end() ; iter++ ) {
+        cout << (*iter).Logical_offset << endl;;
+    }
+    */
 }
 
 

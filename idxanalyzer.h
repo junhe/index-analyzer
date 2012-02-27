@@ -38,10 +38,11 @@ class IdxSignature {
         bool openTraceFile( const char *fpath );
         bool getNextEntry(IdxEntry &idx_entry);
         bool bufferEntries(); // read some entries from trace file and
-                              // put them in sigList
+                              // put them in entry_buf
     private:
         ifstream idx_file;
         vector<IdxSigUnit> sig_list;
+        vector<IdxEntry> entry_buf;
 };
 
 
