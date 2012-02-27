@@ -68,10 +68,10 @@ bool IdxSignature::bufferEntries()
 {
     sig_list.clear();
     IdxEntry h_entry;
-    int bufsize = 1;
+    int bufsize = 16;
 
     while ( bufsize-- > 0 && getNextEntry( h_entry ) ) {
-        cout << "---" << endl; //<< h_entry.Logical_offset << endl;
+        cout << "---" << h_entry.Logical_offset << endl;
     }
 }
 
