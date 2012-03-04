@@ -103,5 +103,12 @@ bool IdxSignature::bufferEntries()
     }
 }
 
+void IdxSignature::discoverPattern( vector<off_t> seq )
+{
+    
+}
+
+
+
 
 

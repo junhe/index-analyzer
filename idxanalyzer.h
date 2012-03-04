@@ -39,6 +39,7 @@ class IdxSignature {
         bool getNextEntry(IdxEntry &idx_entry);
         bool bufferEntries(); // read some entries from trace file and
                               // put them in entry_buf
+        void discoverPattern( vector<off_t> seq );
     private:
         ifstream idx_file;
         vector<IdxSigUnit> sig_list;
@@ -46,6 +47,40 @@ class IdxSignature {
         vector<off_t> off_deltas; //offset[1]-offset[0], offset[2]-offset[1], ... get from entry_buf
 
 };
+
+class Tuple {
+    public:
+        int offset; //note that this is not the 
+                    // offset when accessing file. But
+                    // the offset in LZ77 algorithm
+        int length; //concept in LZ77
+        off_t next_symbol;
+
+        Tuple() {}
+        Tuple(int o, int l, off_t n) {
+            offset = o;
+            length = l;
+            next_symbol = n;
+        }
+        
+        void put(int o, int l, off_t n) {
+            offset = o;
+            length = l;
+            next_symbol = n;
+        }
+        
+        bool operator== (const Tuple other) {
+            if (offset == other.offset 
+                    && length == other.length
+                    && next_symbol == other.next_symbol)
+            {
+                return true;
+            } else {
+                return false;
+            }
+        }
+};
+
 
 
 #endif
