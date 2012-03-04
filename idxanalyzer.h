@@ -78,7 +78,7 @@ class IdxSigUnit {
 // Each index has its own signature
 class IdxSignature {
     public:
-        IdxSignature():win_size(0) {}
+        IdxSignature():win_size(4) {}
         bool openTraceFile( const char *fpath );
         bool getNextEntry(IdxEntry &idx_entry);
         bool bufferEntries(); // read some entries from trace file and

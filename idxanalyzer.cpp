@@ -137,7 +137,8 @@ Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
 {
     vector<off_t>::const_iterator i;     
     int j;
-
+    cout << " I am in searchNeighbor() " << endl;
+    
     //i goes left util the begin or reaching window size
     int distance = 0;
     i = p_lookahead_win;
@@ -146,6 +147,24 @@ Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
         distance++;
     }
     //termination: i == seq.begin() or distance == win_size
+    
+    //print out search buffer and lookahead buffer
+    cout << "search buf: " ;
+    vector<off_t>::const_iterator k;
+    for ( k = i ; k != p_lookahead_win ; k++ ) {
+        cout << *k << " ";
+    }
+    cout << endl;
+
+    cout << "lookahead buf: " ;
+    vector<off_t>::const_iterator p;
+    p = p_lookahead_win;
+    for ( p = p_lookahead_win ; 
+            p != seq.end() && p - p_lookahead_win < win_size ; 
+            p++ ) {
+        cout << *p << " ";
+    }
+    cout << endl;
 
     //i points to a element in search buffer where matching starts
     //j is the iterator from the start to the end of search buffer to compare
