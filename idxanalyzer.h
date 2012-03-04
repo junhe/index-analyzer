@@ -79,6 +79,11 @@ class Tuple {
                 return false;
             }
         }
+        
+        // Tell if the repeating sequences are next to each other
+        bool isRepeatingNeighbor() {
+            return (offset == length && offset > 0);
+        }
 };
 
 
