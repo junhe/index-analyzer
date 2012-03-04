@@ -69,17 +69,38 @@ bool IdxSignature::bufferEntries()
     sig_list.clear();
     IdxEntry h_entry;
     int bufsize = 16;
+    int i;
+    off_t pre_l_offset, cur_l_offset; //logical offset
 
-    while ( bufsize-- > 0 && getNextEntry( h_entry ) ) {
-        //cout << "---" << h_entry.Logical_offset << endl;
+    //init the offset deltas
+    off_deltas.clear();
+    pre_l_offset = 0;
+    cur_l_offset = 0;
+    
+    for ( i = 0 ; i < bufsize ; i++ ) {
+        if (!getNextEntry( h_entry )) {
+            //failed to get next entry
+            break;
+        }
+        
+        pre_l_offset = cur_l_offset;
+        cur_l_offset = h_entry.Logical_offset;
+        if ( i > 0 ) {
+            //push offset[i]-offset[i-1]
+            off_deltas.push_back( cur_l_offset - pre_l_offset );
+        }
+
         entry_buf.push_back(h_entry);
     }
-    /*
     vector<IdxEntry>::iterator iter;
     for (iter = entry_buf.begin() ; iter != entry_buf.end() ; iter++ ) {
-        cout << (*iter).Logical_offset << endl;;
+        cout << (*iter).Logical_offset << " ";
     }
-    */
+    cout << endl;
+    vector<off_t>::iterator iter2;
+    for (iter2 = off_deltas.begin() ; iter2 != off_deltas.end() ; iter2++ ) {
+        cout << (*iter2) << " ";
+    }
 }
 
 

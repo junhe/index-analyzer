@@ -43,6 +43,8 @@ class IdxSignature {
         ifstream idx_file;
         vector<IdxSigUnit> sig_list;
         vector<IdxEntry> entry_buf;
+        vector<off_t> off_deltas; //offset[1]-offset[0], offset[2]-offset[1], ... get from entry_buf
+
 };
 
 
