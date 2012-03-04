@@ -86,6 +86,13 @@ class Tuple {
         }
 };
 
+//used to describe a single pattern that found
+class PatterUnit {
+    vector<off_t> seq;
+    int cnt; //count of repeatition
+};
+
+
 
 
 #endif
