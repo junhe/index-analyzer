@@ -46,8 +46,8 @@ class Tuple {
 
         void show() {
             cout << "offset: " << offset 
-                << "length: " << length
-                << "next_symbol: " << next_symbol;
+                << " length: " << length
+                << " next_symbol: " << next_symbol << endl;
         }
 };
 

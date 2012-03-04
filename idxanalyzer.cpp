@@ -93,7 +93,6 @@ bool IdxSignature::bufferEntries()
         entry_buf.push_back(h_entry);
     }
 
-    discoverPattern(off_deltas);
 
 
     /*
@@ -102,11 +101,14 @@ bool IdxSignature::bufferEntries()
         cout << (*iter).Logical_offset << " ";
     }
     cout << endl;
+    */
     vector<off_t>::iterator iter2;
     for (iter2 = off_deltas.begin() ; iter2 != off_deltas.end() ; iter2++ ) {
         cout << (*iter2) << " ";
     }
-    */
+    cout << endl;
+    
+    discoverPattern(off_deltas);
 }
 
 void IdxSignature::discoverPattern(  vector<off_t> const &seq )
@@ -121,8 +123,11 @@ void IdxSignature::discoverPattern(  vector<off_t> const &seq )
         //lookahead window is not empty
         Tuple cur_tuple = searchNeighbor( seq, p_lookahead_win );
         cur_tuple.show();
-        break;
-            
+        if ( cur_tuple.isRepeatingNeighbor() ) {
+            p_lookahead_win += cur_tuple.length;
+        } else {
+            p_lookahead_win++;
+        }
     }
 
 }
