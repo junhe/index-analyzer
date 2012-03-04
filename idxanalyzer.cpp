@@ -92,6 +92,11 @@ bool IdxSignature::bufferEntries()
 
         entry_buf.push_back(h_entry);
     }
+
+    discoverPattern(off_deltas);
+
+
+    /*
     vector<IdxEntry>::iterator iter;
     for (iter = entry_buf.begin() ; iter != entry_buf.end() ; iter++ ) {
         cout << (*iter).Logical_offset << " ";
@@ -101,14 +106,60 @@ bool IdxSignature::bufferEntries()
     for (iter2 = off_deltas.begin() ; iter2 != off_deltas.end() ; iter2++ ) {
         cout << (*iter2) << " ";
     }
+    */
 }
 
-void IdxSignature::discoverPattern( vector<off_t> seq )
+void IdxSignature::discoverPattern(  vector<off_t> const &seq )
 {
+    vector<off_t>::const_iterator p_lookahead_win; // pointer(iterator) to the lookahead window
     
+    p_lookahead_win = seq.begin();
+    
+    cout << endl << "this is discoverPattern() :)" << endl;
+
+    while ( p_lookahead_win != seq.end() ) {
+        //lookahead window is not empty
+        Tuple cur_tuple = searchNeighbor( seq, p_lookahead_win );
+        cur_tuple.show();
+        break;
+            
+    }
+
 }
 
+Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
+                                    vector<off_t>::const_iterator p_lookahead_win ) 
+{
+    vector<off_t>::const_iterator i;     
+    int j;
 
+    //i goes left util the begin or reaching window size
+    int distance = 0;
+    i = p_lookahead_win;
+    while ( i != seq.begin() && distance < win_size ) {
+        i--;
+        distance++;
+    }
+    //termination: i == seq.begin() or distance == win_size
 
+    //i points to a element in search buffer where matching starts
+    //j is the iterator from the start to the end of search buffer to compare
+    for ( ; i != p_lookahead_win ; i++ ) {
+        int search_length = p_lookahead_win - i;
+        for ( j = 0 ; j < search_length ; j++ ) {
+            if ( *(i+j) != *(p_lookahead_win + j) ) {
+                break;
+            }
+        }
+        if ( j == search_length ) {
+            //found a repeating neighbor
+            return Tuple(search_length, search_length, 
+                         *(p_lookahead_win + search_length));
+        }
+    }
+
+    //Cannot find a repeating neighbor
+    return Tuple(0, 0, *(p_lookahead_win));
+}
 
 
