@@ -96,11 +96,22 @@ class IdxSignature {
 };
 
 //used to describe a single pattern that found
-class PatterUnit {
-    vector<off_t> seq;
-    int cnt; //count of repeatition
+//This will be saved in the stack
+class PatternUnit {
+    public:
+        vector<off_t> seq;
+        int cnt; //count of repeatition
 };
 
+class PatternStack {
+    public:
+        void push( PatternUnit pu ) {
+            the_stack.push_back(pu);
+        }
+    
+    private:
+        vector<PatternUnit> the_stack;
+};
 
 #endif
 
