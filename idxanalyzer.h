@@ -5,6 +5,8 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <assert.h>
+
 using namespace std;
 
 class Tuple {
@@ -101,12 +103,59 @@ class PatternUnit {
     public:
         vector<off_t> seq;
         int cnt; //count of repeatition
+        
+        //return number of elements in total
+        int size() 
+        {
+            return seq.size()*cnt;
+        }
 };
 
 class PatternStack {
     public:
-        void push( PatternUnit pu ) {
+        void push( PatternUnit pu ) 
+        {
             the_stack.push_back(pu);
+        }
+
+        //if popping out t elem breaks any patterns
+        bool isPopSafe( int t ) 
+        {
+            vector<PatternUnit>::reverse_iterator rit;
+            
+            int total = 0;
+            rit = the_stack.rbegin();
+            while ( rit != the_stack.rend()
+                    && total < t )
+            {
+                total += rit->size();
+                rit++;
+            }
+            return total == t;
+        }
+
+        //return false if it is not safe
+        bool pop ( int t )
+        {
+            if ( !isPopSafe(t) ) {
+                return false;
+            }
+
+            int total = 0; // the number of elem already popped out
+            while ( !the_stack.empty() && total < t ) {
+                total += top().size();
+                the_stack.pop_back();
+            }
+            assert( total == t );
+
+            return true;
+        }
+        
+        //make sure the stack is not empty before using this
+        PatternUnit &top () 
+        {
+            assert( the_stack.size() > 0 );
+            return the_stack.back();
         }
     
     private:
