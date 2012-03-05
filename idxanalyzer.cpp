@@ -47,15 +47,18 @@ bool IdxSignature::getNextEntry( IdxEntry &idx_entry )
     //cout << idx_entry.Proc << endl;
     idx_entry.ID = (tokens[1] == string("w")) ? ID_WRITE:ID_READ;
     //cout << idx_entry.ID << endl;
-    idx_entry.Logical_offset = atol( tokens[2].c_str() ); 
+    //idx_entry.Logical_offset = atol( tokens[2].c_str() ); 
+    sscanf( tokens[2].c_str(), "%lld", &idx_entry.Logical_offset);
     //cout << idx_entry.Logical_offset << endl;
-    idx_entry.Length = atol( tokens[3].c_str() );
+    //idx_entry.Length = atol( tokens[3].c_str() );
+    sscanf( tokens[3].c_str(), "%lld", &idx_entry.Length);
     //cout << idx_entry.Length << endl;
     idx_entry.Begin_timestamp = atof( tokens[4].c_str() );
     //cout << idx_entry.Begin_timestamp << endl;
     idx_entry.End_timestamp = atof( tokens[5].c_str() );
     //cout << idx_entry.End_timestamp << endl;
-    idx_entry.Logical_tail = atol( tokens[6].c_str() );
+    //idx_entry.Logical_tail = atol( tokens[6].c_str() );
+    sscanf( tokens[6].c_str(), "%lld", &idx_entry.Logical_tail);
     //cout << idx_entry.Logical_tail << endl;
     //idx_entry.ID2 = atoi( tokens[7].c_str() );
     //cout << idx_entry.ID2 << endl;
@@ -68,7 +71,7 @@ bool IdxSignature::bufferEntries()
 {
     sig_list.clear();
     IdxEntry h_entry;
-    int bufsize = 16;
+    int bufsize = 86039 ;
     int i;
     off_t pre_l_offset, cur_l_offset; //logical offset
 
@@ -82,7 +85,13 @@ bool IdxSignature::bufferEntries()
             //failed to get next entry
             break;
         }
-        
+       
+        //Debug
+        //Filter out only Proc 0
+        if ( h_entry.Proc != 0 ) {
+            continue;
+        }
+
         pre_l_offset = cur_l_offset;
         cur_l_offset = h_entry.Logical_offset;
         if ( i > 0 ) {
@@ -95,19 +104,21 @@ bool IdxSignature::bufferEntries()
 
 
 
-    /*
     vector<IdxEntry>::iterator iter;
     for (iter = entry_buf.begin() ; iter != entry_buf.end() ; iter++ ) {
-        cout << (*iter).Logical_offset << " ";
+        //cout << (*iter).Logical_offset << " ";
+        printf("%lld ", (*iter).Logical_offset );
     }
     cout << endl;
-    */
+    cout << "==================================================" << endl; 
     vector<off_t>::iterator iter2;
     for (iter2 = off_deltas.begin() ; iter2 != off_deltas.end() ; iter2++ ) {
         cout << (*iter2) << " ";
     }
     cout << endl;
-    
+    cout << "sizeof off_t:" << sizeof(off_t) << endl;
+    int tmp;
+    cin >> tmp;
     discoverPattern(off_deltas);
 }
 
@@ -184,7 +195,7 @@ Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
 {
     vector<off_t>::const_iterator i;     
     int j;
-    cout << " I am in searchNeighbor() " << endl;
+    cout << "------------------- I am in searchNeighbor() " << endl;
     
     //i goes left util the begin or reaching window size
     int distance = 0;

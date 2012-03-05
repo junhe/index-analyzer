@@ -6,8 +6,13 @@
 #include <iostream>
 #include <fstream>
 #include <assert.h>
+#include <unistd.h>
+#include <stdio.h>
 
 using namespace std;
+
+#define off_t long long int
+
 
 class PatternStack;
 class PatternUnit;
