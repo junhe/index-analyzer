@@ -51,6 +51,7 @@ class IdxSigUnit: public PatternUnit {
 //Damn, where can I put the time stamp :(
 class IdxSigEntry {
     public:
+        int proc;
         IdxSigUnit logical_offset;
         vector<IdxSigUnit> length;
         vector<IdxSigUnit> physical_offset;
@@ -205,7 +206,9 @@ class IdxSignature {
     public:
         IdxSignature():win_size(4) {} 
         void discoverPattern( vector<off_t> const &seq );
-
+        //It takes in a entry buffer like in PLFS,
+        //analyzes it and generate Index Signature Entries
+        void generateIdxSignature(vector<IdxEntry> &entry_buf, int proc);
     private:
         vector<IdxEntry> entry_buf;
         int win_size; //window size

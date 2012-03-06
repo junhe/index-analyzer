@@ -2,6 +2,17 @@
 
 #include <algorithm>
 
+//IdxEntry is designed to mimic the HostEntry in PLFS,
+//so later I can easily copy and paste these code to PLFS
+//and make it work.
+//
+//It gets signatures for a proc. 
+//But do we really need to separate entries by proc at first?
+void generateIdxSignature(vector<IdxEntry> &entry_buf, int proc) 
+{
+    
+}
+
 //find out pattern of a number sequence 
 void IdxSignature::discoverPattern(  vector<off_t> const &seq )
 {
