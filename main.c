@@ -46,7 +46,6 @@ bool getNextEntry( IdxEntry &idx_entry, ifstream &idx_file )
     }
 
     getline(idx_file, line);
-    //cout << line << endl;
 
     vector<string> tokens;
     vector<string>::iterator iter;
@@ -55,29 +54,13 @@ bool getNextEntry( IdxEntry &idx_entry, ifstream &idx_file )
             istream_iterator<string>(),
             back_inserter<vector<string> >(tokens));
 
-    //for ( iter = tokens.begin() ; iter != tokens.end() ; iter++ ) {
-    //    cout << *iter << endl;
-    //}
     idx_entry.Proc = atoi( tokens[0].c_str() );
-    //cout << idx_entry.Proc << endl;
     idx_entry.ID = (tokens[1] == string("w")) ? ID_WRITE:ID_READ;
-    //cout << idx_entry.ID << endl;
-    //idx_entry.Logical_offset = atol( tokens[2].c_str() ); 
     sscanf( tokens[2].c_str(), "%lld", &idx_entry.Logical_offset);
-    //cout << idx_entry.Logical_offset << endl;
-    //idx_entry.Length = atol( tokens[3].c_str() );
     sscanf( tokens[3].c_str(), "%lld", &idx_entry.Length);
-    //cout << idx_entry.Length << endl;
     idx_entry.Begin_timestamp = atof( tokens[4].c_str() );
-    //cout << idx_entry.Begin_timestamp << endl;
     idx_entry.End_timestamp = atof( tokens[5].c_str() );
-    //cout << idx_entry.End_timestamp << endl;
-    //idx_entry.Logical_tail = atol( tokens[6].c_str() );
     sscanf( tokens[6].c_str(), "%lld", &idx_entry.Logical_tail);
-    //cout << idx_entry.Logical_tail << endl;
-    //idx_entry.ID2 = atoi( tokens[7].c_str() );
-    //cout << idx_entry.ID2 << endl;
-    //idx_entry.Chunk_offset = atoi( tokens[8].c_str() );
 
     return true;
 }
