@@ -7,13 +7,15 @@
 
 using namespace std;
 
-vector<IdxEntry> bufferEntries(ifstream &idx_file);
+vector<IdxEntry> bufferEntries(ifstream &idx_file,
+                               vector<off_t> &off_deltas);
 
 int main(int argc, char ** argv)
 {
     IdxSignature mysig;
     ifstream idx_file;
     vector<IdxEntry> entry_buf;
+    vector<off_t> off_deltas;
 
     idx_file.open("trace.txt");
     if (idx_file.is_open()) {
@@ -22,7 +24,8 @@ int main(int argc, char ** argv)
         cout << "file is not open." << endl;
     }
 
-    entry_buf = bufferEntries(idx_file);
+    entry_buf = bufferEntries(idx_file, off_deltas);
+    mysig.discoverPattern( off_deltas );
 
     cout<<"hello"<<endl;
     return 0;
@@ -79,7 +82,9 @@ bool getNextEntry( IdxEntry &idx_entry, ifstream &idx_file )
     return true;
 }
 
-vector<IdxEntry> bufferEntries(ifstream &idx_file)
+vector<IdxEntry> bufferEntries(ifstream &idx_file,
+                               vector<off_t> &off_deltas
+                              )
 {
     cout << "i am bufferEntries()" << endl;
     IdxEntry h_entry;
@@ -90,7 +95,6 @@ vector<IdxEntry> bufferEntries(ifstream &idx_file)
     
 
     //init the offset deltas
-    vector<off_t> off_deltas; //offset[1]-offset[0], offset[2]-offset[1], ... get from entry_buf
     off_deltas.clear();
     pre_l_offset = 0;
     cur_l_offset = 0;
