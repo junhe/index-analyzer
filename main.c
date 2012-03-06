@@ -25,7 +25,8 @@ int main(int argc, char ** argv)
     }
 
     entry_buf = bufferEntries(idx_file, off_deltas);
-    mysig.discoverPattern( off_deltas );
+    //mysig.discoverPattern( off_deltas );
+    mysig.generateIdxSignature(entry_buf, 0);
 
     cout<<"hello"<<endl;
     return 0;
@@ -103,6 +104,7 @@ vector<IdxEntry> bufferEntries(ifstream &idx_file,
 
         entry_buf.push_back(h_entry);
     }
+    /*
     vector<IdxEntry>::iterator iter;
     for (iter = entry_buf.begin() ; iter != entry_buf.end() ; iter++ ) {
         //cout << (*iter).Logical_offset << " ";
@@ -117,6 +119,7 @@ vector<IdxEntry> bufferEntries(ifstream &idx_file,
     cout << endl;
     
     cout << "end of bufferEntries" << endl;
+    */
     return entry_buf;
 }
 

@@ -8,36 +8,36 @@
 //
 //It gets signatures for a proc. 
 //But do we really need to separate entries by proc at first?
-void generateIdxSignature(vector<IdxEntry> &entry_buf, int proc) 
+void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf, int proc) 
 {
-   vector<off_t> logical_offset, length, physical_offset; 
-   vector<off_t> logical_offset_delta, 
-                 length_delta, 
-                 physical_offset_delta; 
+    vector<off_t> logical_offset, length, physical_offset; 
+    vector<off_t> logical_offset_delta, 
+                    length_delta, 
+                    physical_offset_delta; 
 
-   vector<IdxEntry>::const_iterator iter;
-   for ( iter = entry_buf.begin() ; 
-           itor != entry_buf.end() ;
-           itor++ )
-   {
-       if ( iter->Proc != proc ) {
-           continue;
-       }
+    vector<IdxEntry>::const_iterator iter;
+    for ( iter = entry_buf.begin() ; 
+            iter != entry_buf.end() ;
+            iter++ )
+    {
+        if ( iter->Proc != proc ) {
+            continue;
+        }
 
-       logical_offset.push_back(iter->Logical_offset);
-       length.push_back(iter->Length);
-       physical_offset.push_back(iter->Physical_offset);
+        logical_offset.push_back(iter->Logical_offset);
+        length.push_back(iter->Length);
+        physical_offset.push_back(iter->Physical_offset);
 
-       if ( iter != entry_buf.begin() ) {
-           logical_offset_delta.push_back(
-                   iter->Logical_offset - (iter-1)->Logical_offset);
-           length_delta.push_back(
-                   iter->Length - (iter-1)->Length);
-           physical_offset_delta.push_back(
-                   iter->Physical_offset - (iter-1)->Physical_offset);
-       }
-
-   }
+        if ( iter != entry_buf.begin() ) {
+            logical_offset_delta.push_back(
+                    iter->Logical_offset - (iter-1)->Logical_offset);
+            length_delta.push_back(
+                    iter->Length - (iter-1)->Length);
+            physical_offset_delta.push_back(
+                    iter->Physical_offset - (iter-1)->Physical_offset);
+        }
+        cout << iter->Proc << " ";
+    }
 }
 
 //find out pattern of a number sequence 
@@ -59,11 +59,11 @@ void IdxSignature::discoverPattern(  vector<off_t> const &seq )
             if ( pattern_stack.isPopSafe( cur_tuple.length ) ) {
                 //safe
                 pattern_stack.popElem( cur_tuple.length );
-                
+
                 vector<off_t>::const_iterator first, last;
                 first = p_lookahead_win;
                 last = p_lookahead_win + cur_tuple.length;
-                
+
                 PatternUnit pu;
                 pu.seq.assign(first, last);
                 pu.cnt = 2;
@@ -73,14 +73,14 @@ void IdxSignature::discoverPattern(  vector<off_t> const &seq )
             } else {
                 //unsafe
                 PatternUnit pu = pattern_stack.top();
-                
+
                 if ( pu.seq.size() == cur_tuple.length ) {
                     //the subseq in lookahead window repeats
                     //the top pattern in stack
                     pu.cnt++;
                     pattern_stack.popPattern();
                     pattern_stack.push(pu);
-                    
+
                     p_lookahead_win += cur_tuple.length;
                 } else {
                     //cannot pop out cur_tuple.length elems without
@@ -110,12 +110,12 @@ void IdxSignature::discoverPattern(  vector<off_t> const &seq )
 }
 
 Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
-                                    vector<off_t>::const_iterator p_lookahead_win ) 
+        vector<off_t>::const_iterator p_lookahead_win ) 
 {
     vector<off_t>::const_iterator i;     
     int j;
     cout << "------------------- I am in searchNeighbor() " << endl;
-    
+
     //i goes left util the begin or reaching window size
     int distance = 0;
     i = p_lookahead_win;
@@ -124,7 +124,7 @@ Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
         distance++;
     }
     //termination: i == seq.begin() or distance == win_size
-    
+
     //print out search buffer and lookahead buffer
     cout << "search buf: " ;
     vector<off_t>::const_iterator k;
@@ -155,7 +155,7 @@ Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
         if ( j == search_length ) {
             //found a repeating neighbor
             return Tuple(search_length, search_length, 
-                         *(p_lookahead_win + search_length));
+                    *(p_lookahead_win + search_length));
         }
     }
 
