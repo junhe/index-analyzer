@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
+
 using namespace std;
 
 #define off_t long long int
@@ -190,20 +191,14 @@ class IdxSigUnit {
 class IdxSignature {
     public:
         IdxSignature():win_size(4) {} 
-        bool openTraceFile( const char *fpath );
-        bool bufferEntries(); // read some entries from trace file and
-                              // put them in entry_buf
         void discoverPattern( vector<off_t> const &seq );
 
     private:
-        ifstream idx_file;
         vector<IdxEntry> entry_buf;
-        vector<off_t> off_deltas; //offset[1]-offset[0], offset[2]-offset[1], ... get from entry_buf
         int win_size; //window size
         
         Tuple searchNeighbor( vector<off_t> const &seq,
                               vector<off_t>::const_iterator p_lookahead_win ); 
-        bool getNextEntry(IdxEntry &idx_entry);
 };
 
 
