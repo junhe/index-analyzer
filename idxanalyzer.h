@@ -197,7 +197,7 @@ class IdxEntry {
         double End_timestamp;
         off_t Logical_tail;
         int ID_2;
-        off_t Chunk_offset;
+        off_t Physical_offset;
 };
 
 

@@ -10,7 +10,34 @@
 //But do we really need to separate entries by proc at first?
 void generateIdxSignature(vector<IdxEntry> &entry_buf, int proc) 
 {
-    
+   vector<off_t> logical_offset, length, physical_offset; 
+   vector<off_t> logical_offset_delta, 
+                 length_delta, 
+                 physical_offset_delta; 
+
+   vector<IdxEntry>::const_iterator iter;
+   for ( iter = entry_buf.begin() ; 
+           itor != entry_buf.end() ;
+           itor++ )
+   {
+       if ( iter->Proc != proc ) {
+           continue;
+       }
+
+       logical_offset.push_back(iter->Logical_offset);
+       length.push_back(iter->Length);
+       physical_offset.push_back(iter->Physical_offset);
+
+       if ( iter != entry_buf.begin() ) {
+           logical_offset_delta.push_back(
+                   iter->Logical_offset - (iter-1)->Logical_offset);
+           length_delta.push_back(
+                   iter->Length - (iter-1)->Length);
+           physical_offset_delta.push_back(
+                   iter->Physical_offset - (iter-1)->Physical_offset);
+       }
+
+   }
 }
 
 //find out pattern of a number sequence 
