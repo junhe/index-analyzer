@@ -36,6 +36,13 @@ class PatternUnit {
         }
 };
 
+class IdxSigUnit: public PatternUnit {
+    public:
+        off_t init; // the initial value of 
+                    // logical offset, length, or physical offset
+};
+
+
 class PatternStack {
     public:
         PatternStack() {}
@@ -179,13 +186,6 @@ class IdxEntry {
         off_t Chunk_offset;
 };
 
-
-class IdxSigUnit {
-    off_t init_offset;
-    vector <off_t> offset_stride;
-    off_t init_length;
-    vector <off_t> length_stride;
-};
 
 // Each index has its own signature
 class IdxSignature {
