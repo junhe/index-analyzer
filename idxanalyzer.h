@@ -36,12 +36,25 @@ class PatternUnit {
         }
 };
 
+//This is used to describ a single repeating
+//pattern, but with starting value
 class IdxSigUnit: public PatternUnit {
     public:
         off_t init; // the initial value of 
                     // logical offset, length, or physical offset
 };
 
+//This is the new entry for the new index
+//file using I/O signature. It corresponds to
+//HostEntry in old PLFS.
+//
+//Damn, where can I put the time stamp :(
+class IdxSigEntry {
+    public:
+        IdxSigUnit logical_offset;
+        vector<IdxSigUnit> length;
+        vector<IdxSigUnit> physical_offset;
+};
 
 class PatternStack {
     public:
