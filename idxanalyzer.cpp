@@ -36,7 +36,7 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf, int proc)
             physical_offset_delta.push_back(
                     iter->Physical_offset - (iter-1)->Physical_offset);
         }
-        cout << iter->Proc << " ";
+        cout << iter->Physical_offset << " ";
     }
 }
 
