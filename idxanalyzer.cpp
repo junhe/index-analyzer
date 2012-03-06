@@ -135,7 +135,7 @@ void IdxSignature::discoverSigPattern( vector<off_t> const &seq,
                 first = p_lookahead_win;
                 last = p_lookahead_win + cur_tuple.length;
 
-                PatternUnit pu;
+                IdxSigUnit pu;
                 pu.seq.assign(first, last);
                 pu.cnt = 2;
 
@@ -143,7 +143,7 @@ void IdxSignature::discoverSigPattern( vector<off_t> const &seq,
                 p_lookahead_win += cur_tuple.length;
             } else {
                 //unsafe
-                PatternUnit pu = pattern_stack.top();
+                IdxSigUnit pu = pattern_stack.top();
 
                 if ( pu.seq.size() == cur_tuple.length ) {
                     //the subseq in lookahead window repeats
@@ -157,7 +157,7 @@ void IdxSignature::discoverSigPattern( vector<off_t> const &seq,
                     //cannot pop out cur_tuple.length elems without
                     //totally breaking any pattern.
                     //So we simply add one elem to the stack
-                    PatternUnit pu2;
+                    IdxSigUnit pu2;
                     pu2.seq.push_back( *p_lookahead_win );
                     pu2.cnt = 1;
                     pattern_stack.push(pu2);
@@ -168,7 +168,7 @@ void IdxSignature::discoverSigPattern( vector<off_t> const &seq,
 
         } else {
             //(0,0,x)
-            PatternUnit pu;
+            IdxSigUnit pu;
             pu.seq.push_back(cur_tuple.next_symbol);
             pu.cnt = 1;
 
