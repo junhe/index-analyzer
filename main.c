@@ -61,7 +61,7 @@ bool getNextEntry( IdxEntry &idx_entry, ifstream &idx_file )
     idx_entry.Begin_timestamp = atof( tokens[4].c_str() );
     idx_entry.End_timestamp = atof( tokens[5].c_str() );
     sscanf( tokens[6].c_str(), "%lld", &idx_entry.Logical_tail);
-
+    sscanf( tokens[8].c_str(), "%lld", &idx_entry.Physical_offset);
     return true;
 }
 
