@@ -197,11 +197,9 @@ class IdxSignature {
 
     private:
         ifstream idx_file;
-        vector<IdxSigUnit> sig_list;
         vector<IdxEntry> entry_buf;
         vector<off_t> off_deltas; //offset[1]-offset[0], offset[2]-offset[1], ... get from entry_buf
         int win_size; //window size
-        PatternStack pattern_stack;
         
         Tuple searchNeighbor( vector<off_t> const &seq,
                               vector<off_t>::const_iterator p_lookahead_win ); 

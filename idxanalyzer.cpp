@@ -126,7 +126,8 @@ bool IdxSignature::bufferEntries()
 void IdxSignature::discoverPattern(  vector<off_t> const &seq )
 {
     vector<off_t>::const_iterator p_lookahead_win; // pointer(iterator) to the lookahead window
-    
+    PatternStack pattern_stack;
+
     p_lookahead_win = seq.begin();
     pattern_stack.clear();
 
