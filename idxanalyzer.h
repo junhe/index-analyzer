@@ -206,6 +206,8 @@ class IdxSignature {
     public:
         IdxSignature():win_size(4) {} 
         void discoverPattern( vector<off_t> const &seq );
+        void discoverSigPattern( vector<off_t> const &seq,
+                                    vector<off_t> const &orig );
         //It takes in a entry buffer like in PLFS,
         //analyzes it and generate Index Signature Entries
         void generateIdxSignature(vector<IdxEntry> &entry_buf, int proc);
