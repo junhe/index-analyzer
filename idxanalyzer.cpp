@@ -17,6 +17,8 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
         iter->logical_offset.show();
         
         vector<IdxSigUnit>::const_iterator iter2;
+
+        cout << "----Length----" << endl;
         for (iter2 = iter->length.begin();
                 iter2 != iter->length.end();
                 iter2++ )
@@ -24,6 +26,7 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
             iter2->show(); 
         }
 
+        cout << "----Physical Offset----" << endl;
         for (iter2 = iter->physical_offset.begin();
                 iter2 != iter->physical_offset.end();
                 iter2++ )
@@ -72,6 +75,7 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
                     iter->Physical_offset - (iter-1)->Physical_offset);
         }
         //cout << iter->Physical_offset << " ";
+        //cout << iter->Length << " ";
     }
 
     SigStack<IdxSigUnit> offset_sig = 
@@ -89,12 +93,15 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
         //cout << stack_iter->init << " " ;
         IdxSigEntry idx_entry;
         range_end = range_start + stack_iter->size();
+        //cout << "************start length" << endl;
         SigStack<IdxSigUnit> length_stack = 
             discoverSigPattern( 
                     vector<off_t> (length_delta.begin()+range_start,
                                    length_delta.begin()+range_end),
                     vector<off_t> (length.begin()+range_start,
                                    length.begin()+range_end) );
+        //cout << "************End length" << endl;
+
         SigStack<IdxSigUnit> physical_offset_stack = 
             discoverSigPattern( 
                     vector<off_t> (physical_offset_delta.begin()+range_start,
@@ -222,6 +229,7 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
 
                 pattern_stack.push( pu );
                 p_lookahead_win += cur_tuple.length;
+                p_lookahead_win_orig += cur_tuple.length;
             } else {
                 //unsafe
                 IdxSigUnit pu = pattern_stack.top();
@@ -233,6 +241,8 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
                     pu.cnt++;
                     pattern_stack.popPattern();
                     pattern_stack.push(pu);
+                    pu.init = *p_lookahead_win_orig; //should delete this. keep if only for 
+                                                     //tmp debug.
 
                     p_lookahead_win += cur_tuple.length;
                     p_lookahead_win_orig += cur_tuple.length;
