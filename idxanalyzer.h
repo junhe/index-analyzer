@@ -29,9 +29,21 @@ class PatternUnit {
             :seq(sq),cnt(ct)
         {}
         //return number of elements in total
-        virtual int size() const 
+        int size() const 
         {
             return seq.size()*cnt;
+        }
+
+        virtual void show() 
+        {
+            vector<off_t>::iterator iter;
+            for (iter = seq.begin();
+                    iter != seq.end();
+                    iter++ )
+            {
+                cout << *iter << ", ";
+            }
+            cout << "^" << cnt << endl;
         }
 };
 
@@ -41,6 +53,11 @@ class IdxSigUnit: public PatternUnit {
     public:
         off_t init; // the initial value of 
                     // logical offset, length, or physical offset
+        void show() 
+        {
+            cout << init << " - ";
+            PatternUnit::show();
+        }
 };
 
 template <class T> // T can be PatternUnit or IdxSigUnit

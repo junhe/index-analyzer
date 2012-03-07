@@ -75,8 +75,16 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
         idx_entry.physical_offset = physical_offset_stack;
 
         range_start = range_end;
-    }    
+    }
+    printIdxEntries(idx_entry_list);
 }
+
+//for debugging
+void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
+{
+    
+}
+
 
 //find out pattern of a number sequence 
 void IdxSignature::discoverPattern(  vector<off_t> const &seq )
