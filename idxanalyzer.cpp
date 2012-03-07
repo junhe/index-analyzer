@@ -7,7 +7,9 @@
 //and make it work.
 //
 //It gets signatures for a proc. 
+//TODO:
 //But do we really need to separate entries by proc at first?
+//Also, have to handle the case that there is only one entry
 void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf, 
                                         int proc) 
 {
@@ -47,11 +49,21 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
     vector<IdxSigEntry>sig_entry;
     vector<IdxSigUnit>::const_iterator stack_iter;
 
+    int range_start = 0, range_end; //the range currently processing
     for (stack_iter = offset_sig.begin();
             stack_iter != offset_sig.end();
             stack_iter++ )
     {
-        cout << stack_iter->init << " " ;
+        //cout << stack_iter->init << " " ;
+        range_end = range_start + stack_iter->size();
+        SigStack<IdxSigUnit> length_stack = 
+            discoverSigPattern( 
+                    vector<off_t> (length_delta.begin()+range_start,
+                                   length_delta.begin()+range_end),
+                    vector<off_t> (length.begin()+range_start,
+                                   length.begin()+range_end) );
+
+        range_start = range_end;
     }    
 }
 

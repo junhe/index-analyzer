@@ -29,7 +29,7 @@ class PatternUnit {
             :seq(sq),cnt(ct)
         {}
         //return number of elements in total
-        int size() 
+        virtual int size() const 
         {
             return seq.size()*cnt;
         }
