@@ -7,7 +7,7 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
 {
     vector<IdxSigEntry>::const_iterator iter;
 
-    cout << "this is printIdxEntries" << endl;
+    //cout << "this is printIdxEntries" << endl;
 
     for ( iter = idx_entry_list.begin();
             iter != idx_entry_list.end();
@@ -71,7 +71,7 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
             physical_offset_delta.push_back(
                     iter->Physical_offset - (iter-1)->Physical_offset);
         }
-        cout << iter->Physical_offset << " ";
+        //cout << iter->Physical_offset << " ";
     }
 
     SigStack<IdxSigUnit> offset_sig = 
@@ -126,12 +126,12 @@ void IdxSignature::discoverPattern(  vector<off_t> const &seq )
     p_lookahead_win = seq.begin();
     pattern_stack.clear();
 
-    cout << endl << "this is discoverPattern() :)" << endl;
+    //cout << endl << "this is discoverPattern() :)" << endl;
 
     while ( p_lookahead_win != seq.end() ) {
         //lookahead window is not empty
         Tuple cur_tuple = searchNeighbor( seq, p_lookahead_win );
-        cur_tuple.show();
+        //cur_tuple.show();
         if ( cur_tuple.isRepeatingNeighbor() ) {
             if ( pattern_stack.isPopSafe( cur_tuple.length ) ) {
                 //safe
@@ -181,7 +181,7 @@ void IdxSignature::discoverPattern(  vector<off_t> const &seq )
             pattern_stack.push(pu); 
             p_lookahead_win++;
         }
-        pattern_stack.show();
+        //pattern_stack.show();
     }
 
 }
@@ -200,12 +200,12 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
     p_lookahead_win_orig = orig.begin();
     pattern_stack.clear();
 
-    cout << endl << "this is discoverPattern() :)" << endl;
+    //cout << endl << "this is discoverPattern() :)" << endl;
 
     while ( p_lookahead_win != seq.end() ) {
         //lookahead window is not empty
         Tuple cur_tuple = searchNeighbor( seq, p_lookahead_win );
-        cur_tuple.show();
+        //cur_tuple.show();
         if ( cur_tuple.isRepeatingNeighbor() ) {
             if ( pattern_stack.isPopSafe( cur_tuple.length ) ) {
                 //safe
@@ -260,7 +260,7 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
             p_lookahead_win++;
             p_lookahead_win_orig++;
         }
-        pattern_stack.show();
+        //pattern_stack.show();
     }
     return pattern_stack;
 }
@@ -270,7 +270,7 @@ Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
 {
     vector<off_t>::const_iterator i;     
     int j;
-    cout << "------------------- I am in searchNeighbor() " << endl;
+    //cout << "------------------- I am in searchNeighbor() " << endl;
 
     //i goes left util the begin or reaching window size
     int distance = 0;
@@ -281,8 +281,9 @@ Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
     }
     //termination: i == seq.begin() or distance == win_size
 
+    /*
     //print out search buffer and lookahead buffer
-    cout << "search buf: " ;
+    //cout << "search buf: " ;
     vector<off_t>::const_iterator k;
     for ( k = i ; k != p_lookahead_win ; k++ ) {
         cout << *k << " ";
@@ -298,6 +299,7 @@ Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
         cout << *p << " ";
     }
     cout << endl;
+    */
 
     //i points to a element in search buffer where matching starts
     //j is the iterator from the start to the end of search buffer to compare

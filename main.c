@@ -28,7 +28,7 @@ int main(int argc, char ** argv)
     //mysig.discoverPattern( off_deltas );
     mysig.generateIdxSignature(entry_buf, 0);
 
-    cout<<"hello"<<endl;
+    cout<<"End of the program"<<endl;
     return 0;
 }
 
@@ -70,7 +70,7 @@ vector<IdxEntry> bufferEntries(ifstream &idx_file,
                                vector<off_t> &off_deltas
                               )
 {
-    cout << "i am bufferEntries()" << endl;
+    //cout << "i am bufferEntries()" << endl;
     IdxEntry h_entry;
     vector<IdxEntry> entry_buf;
     int bufsize = 86039 ;
