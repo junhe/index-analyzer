@@ -21,8 +21,16 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
                 iter2 != iter->length.end();
                 iter2++ )
         {
-            
+            iter2->show(); 
         }
+
+        for (iter2 = iter->physical_offset.begin();
+                iter2 != iter->physical_offset.end();
+                iter2++ )
+        {
+            iter2->show(); 
+        }
+        cout << "-------------------------------------" << endl;
     }
 }
 
