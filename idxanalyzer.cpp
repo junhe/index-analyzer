@@ -8,7 +8,8 @@
 //
 //It gets signatures for a proc. 
 //But do we really need to separate entries by proc at first?
-void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf, int proc) 
+void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf, 
+                                        int proc) 
 {
     vector<off_t> logical_offset, length, physical_offset; 
     vector<off_t> logical_offset_delta, 
@@ -143,7 +144,7 @@ void IdxSignature::discoverSigPattern( vector<off_t> const &seq,
                 p_lookahead_win += cur_tuple.length;
             } else {
                 //unsafe
-                IdxSigUnit pu = pattern_stack.top();
+                IdxSigUnit pu = (IdxSigUnit) pattern_stack.top();
 
                 if ( pu.seq.size() == cur_tuple.length ) {
                     //the subseq in lookahead window repeats
