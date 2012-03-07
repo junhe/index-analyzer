@@ -34,9 +34,9 @@ class PatternUnit {
             return seq.size()*cnt;
         }
 
-        virtual void show() 
+        virtual void show() const
         {
-            vector<off_t>::iterator iter;
+            vector<off_t>::const_iterator iter;
             for (iter = seq.begin();
                     iter != seq.end();
                     iter++ )
@@ -53,7 +53,7 @@ class IdxSigUnit: public PatternUnit {
     public:
         off_t init; // the initial value of 
                     // logical offset, length, or physical offset
-        void show() 
+        void show() const
         {
             cout << init << " - ";
             PatternUnit::show();
@@ -141,6 +141,8 @@ class PatternStack {
                     iter != the_stack.end();
                     iter++ )
             {
+                iter->show();
+                /*
                 vector<off_t>::const_iterator off_iter;
                 for ( off_iter = (iter->seq).begin();
                         off_iter != (iter->seq).end();
@@ -149,6 +151,7 @@ class PatternStack {
                     cout << *off_iter << ", ";
                 }
                 cout << "^" << iter->cnt << endl;
+                */
             }
         }
     
