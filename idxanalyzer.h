@@ -57,10 +57,11 @@ class IdxSigEntry {
         vector<IdxSigUnit> physical_offset;
 };
 
+template <class T> // T can be PatternUnit or IdxSigUnit
 class PatternStack {
     public:
         PatternStack() {}
-        void push( PatternUnit pu ) 
+        void push( T pu ) 
         {
             the_stack.push_back(pu);
         }
@@ -73,7 +74,7 @@ class PatternStack {
         //if popping out t elem breaks any patterns
         bool isPopSafe( int t ) 
         {
-            vector<PatternUnit>::reverse_iterator rit;
+            vector<T>::reverse_iterator rit;
             
             int total = 0;
             rit = the_stack.rbegin();
@@ -111,7 +112,7 @@ class PatternStack {
         }
         
         //make sure the stack is not empty before using this
-        PatternUnit top () 
+        T top () 
         {
             assert( the_stack.size() > 0 );
             return the_stack.back();
@@ -119,7 +120,7 @@ class PatternStack {
         
         void show()
         {
-            vector<PatternUnit>::const_iterator iter;
+            vector<T>::const_iterator iter;
             
             for ( iter = the_stack.begin();
                     iter != the_stack.end();
@@ -137,7 +138,7 @@ class PatternStack {
         }
     
     private:
-        vector<PatternUnit> the_stack;
+        vector<T> the_stack;
 };
 
 class Tuple {
