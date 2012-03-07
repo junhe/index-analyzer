@@ -45,7 +45,7 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
 void IdxSignature::discoverPattern(  vector<off_t> const &seq )
 {
     vector<off_t>::const_iterator p_lookahead_win; // pointer(iterator) to the lookahead window
-    PatternStack pattern_stack;
+    PatternStack<PatternUnit> pattern_stack;
 
     p_lookahead_win = seq.begin();
     pattern_stack.clear();
@@ -116,7 +116,7 @@ void IdxSignature::discoverSigPattern( vector<off_t> const &seq,
                                     vector<off_t> const &orig )
 {
     vector<off_t>::const_iterator p_lookahead_win; // pointer(iterator) to the lookahead window
-    PatternStack pattern_stack;
+    PatternStack<IdxSigUnit> pattern_stack;
 
     p_lookahead_win = seq.begin();
     pattern_stack.clear();

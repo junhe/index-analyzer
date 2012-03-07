@@ -15,9 +15,6 @@ using namespace std;
 #define off_t long long int
 
 
-class PatternStack;
-class PatternUnit;
-
 //used to describe a single pattern that found
 //This will be saved in the stack
 class PatternUnit {
@@ -74,7 +71,7 @@ class PatternStack {
         //if popping out t elem breaks any patterns
         bool isPopSafe( int t ) 
         {
-            vector<T>::reverse_iterator rit;
+            typename vector<T>::reverse_iterator rit;
             
             int total = 0;
             rit = the_stack.rbegin();
@@ -120,7 +117,7 @@ class PatternStack {
         
         void show()
         {
-            vector<T>::const_iterator iter;
+            typename vector<T>::const_iterator iter;
             
             for ( iter = the_stack.begin();
                     iter != the_stack.end();
