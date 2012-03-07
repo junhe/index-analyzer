@@ -44,7 +44,15 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
         discoverSigPattern(logical_offset_delta, logical_offset);
 
     //Now, go through offset_sig one by one and build the IdxSigEntry s
-    
+    vector<IdxSigEntry>sig_entry;
+    vector<IdxSigUnit>::const_iterator stack_iter;
+
+    for (stack_iter = offset_sig.begin();
+            stack_iter != offset_sig.end();
+            stack_iter++ )
+    {
+        cout << stack_iter->init << " " ;
+    }    
 }
 
 //find out pattern of a number sequence 
