@@ -14,6 +14,7 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
             iter++ )
     {
         cout << "[" << iter->proc << "]" << endl;
+        cout << "----Logical Offset----" << endl;
         iter->logical_offset.show();
         
         vector<IdxSigUnit>::const_iterator iter2;
