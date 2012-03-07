@@ -120,7 +120,7 @@ void IdxSignature::discoverSigPattern( vector<off_t> const &seq,
     // pointer(iterator) to the lookahead window, bot should move together
     vector<off_t>::const_iterator p_lookahead_win, 
                                   p_lookahead_win_orig; 
-    PatternStack<IdxSigUnit> pattern_stack;
+    SigStack<IdxSigUnit> pattern_stack;
 
     p_lookahead_win = seq.begin();
     p_lookahead_win_orig = orig.begin();

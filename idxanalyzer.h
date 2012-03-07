@@ -141,25 +141,26 @@ class PatternStack {
 template <class T>
 class SigStack: public PatternStack <T> 
 {
-    virtual void show()
-    {
-        typename vector<T>::const_iterator iter;
-
-        for ( iter = this->the_stack.begin();
-                iter != this->the_stack.end();
-                iter++ )
+    public:
+        virtual void show()
         {
-            vector<off_t>::const_iterator off_iter;
-            cout << iter->init << "- " ;
-            for ( off_iter = (iter->seq).begin();
-                    off_iter != (iter->seq).end();
-                    off_iter++ )
+            typename vector<T>::const_iterator iter;
+
+            for ( iter = this->the_stack.begin();
+                    iter != this->the_stack.end();
+                    iter++ )
             {
-                cout << *off_iter << ", ";
+                vector<off_t>::const_iterator off_iter;
+                cout << iter->init << "- " ;
+                for ( off_iter = (iter->seq).begin();
+                        off_iter != (iter->seq).end();
+                        off_iter++ )
+                {
+                    cout << *off_iter << ", ";
+                }
+                cout << "^" << iter->cnt << endl;
             }
-            cout << "^" << iter->cnt << endl;
         }
-    }
 
 };
 
