@@ -122,13 +122,13 @@ class PatternStack {
         }
 
         typename vector<T>::const_iterator
-            begin()
+            begin() const
         {
             return the_stack.begin();
         }
         
         typename vector<T>::const_iterator
-            end()
+            end() const
         {
             return the_stack.end();
         }

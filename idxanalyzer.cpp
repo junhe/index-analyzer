@@ -13,8 +13,16 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
             iter != idx_entry_list.end();
             iter++ )
     {
-       cout << "[" << iter->proc << "]" << endl;
-       vector<IdxSigUnit>::const_iterator iter;
+        cout << "[" << iter->proc << "]" << endl;
+        iter->logical_offset.show();
+        
+        vector<IdxSigUnit>::const_iterator iter2;
+        for (iter2 = iter->length.begin();
+                iter2 != iter->length.end();
+                iter2++ )
+        {
+            
+        }
     }
 }
 
