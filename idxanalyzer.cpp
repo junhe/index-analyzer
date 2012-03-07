@@ -115,10 +115,13 @@ void IdxSignature::discoverPattern(  vector<off_t> const &seq )
 void IdxSignature::discoverSigPattern( vector<off_t> const &seq,
                                     vector<off_t> const &orig )
 {
-    vector<off_t>::const_iterator p_lookahead_win; // pointer(iterator) to the lookahead window
+    // pointer(iterator) to the lookahead window, bot should move together
+    vector<off_t>::const_iterator p_lookahead_win, 
+                                  p_lookahead_win_orig; 
     PatternStack<IdxSigUnit> pattern_stack;
 
     p_lookahead_win = seq.begin();
+    p_lookahead_win_orig = orig.begin();
     pattern_stack.clear();
 
     cout << endl << "this is discoverPattern() :)" << endl;
@@ -139,42 +142,47 @@ void IdxSignature::discoverSigPattern( vector<off_t> const &seq,
                 IdxSigUnit pu;
                 pu.seq.assign(first, last);
                 pu.cnt = 2;
+                pu.init = *(p_lookahead_win_orig - cur_tuple.length);
 
                 pattern_stack.push( pu );
                 p_lookahead_win += cur_tuple.length;
             } else {
                 //unsafe
-                IdxSigUnit pu = (IdxSigUnit) pattern_stack.top();
+                IdxSigUnit pu = pattern_stack.top();
 
                 if ( pu.seq.size() == cur_tuple.length ) {
                     //the subseq in lookahead window repeats
-                    //the top pattern in stack
+                    //the top pattern in stack.
+                    //initial remains the same.
                     pu.cnt++;
                     pattern_stack.popPattern();
                     pattern_stack.push(pu);
 
                     p_lookahead_win += cur_tuple.length;
+                    p_lookahead_win_orig += cur_tuple.length;
                 } else {
                     //cannot pop out cur_tuple.length elems without
                     //totally breaking any pattern.
                     //So we simply add one elem to the stack
-                    IdxSigUnit pu2;
-                    pu2.seq.push_back( *p_lookahead_win );
-                    pu2.cnt = 1;
-                    pattern_stack.push(pu2);
+                    IdxSigUnit pu;
+                    pu.seq.push_back( *p_lookahead_win );
+                    pu.init = *p_lookahead_win_orig;
+                    pu.cnt = 1;
+                    pattern_stack.push(pu);
                     p_lookahead_win++;
+                    p_lookahead_win_orig++;
                 }
             }
-
-
         } else {
             //(0,0,x)
             IdxSigUnit pu;
             pu.seq.push_back(cur_tuple.next_symbol);
+            pu.init = *p_lookahead_win_orig;
             pu.cnt = 1;
 
             pattern_stack.push(pu); 
             p_lookahead_win++;
+            p_lookahead_win_orig++;
         }
         pattern_stack.show();
     }
