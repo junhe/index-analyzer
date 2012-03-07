@@ -46,7 +46,7 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
         discoverSigPattern(logical_offset_delta, logical_offset);
 
     //Now, go through offset_sig one by one and build the IdxSigEntry s
-    vector<IdxSigEntry>sig_entry;
+    vector<IdxSigEntry>idx_entry_list;
     vector<IdxSigUnit>::const_iterator stack_iter;
 
     int range_start = 0, range_end; //the range currently processing
@@ -55,6 +55,7 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
             stack_iter++ )
     {
         //cout << stack_iter->init << " " ;
+        IdxSigEntry idx_entry;
         range_end = range_start + stack_iter->size();
         SigStack<IdxSigUnit> length_stack = 
             discoverSigPattern( 
@@ -62,6 +63,16 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
                                    length_delta.begin()+range_end),
                     vector<off_t> (length.begin()+range_start,
                                    length.begin()+range_end) );
+        SigStack<IdxSigUnit> physical_offset_stack = 
+            discoverSigPattern( 
+                    vector<off_t> (physical_offset_delta.begin()+range_start,
+                                   physical_offset_delta.begin()+range_end),
+                    vector<off_t> (physical_offset.begin()+range_start,
+                                   physical_offset.begin()+range_end) );
+
+        idx_entry.logical_offset = *stack_iter;
+        idx_entry.length = length_stack;
+        idx_entry.physical_offset = physical_offset_stack;
 
         range_start = range_end;
     }    
