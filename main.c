@@ -90,10 +90,10 @@ vector<IdxEntry> bufferEntries(ifstream &idx_file,
     pre_l_offset = 0;
     cur_l_offset = 0;
     
-    cout << "before for" << endl;
+    //cout << "before for" << endl;
     for ( i = 0 ; i < bufsize && idx_file.good(); i++ ) {
-        cout << i << ".";
-        fflush(stdout);
+        //cout << i << ".";
+        //fflush(stdout);
         /*
         if (!getNextEntry( h_entry, idx_file )) {
             //failed to get next entry
@@ -101,7 +101,7 @@ vector<IdxEntry> bufferEntries(ifstream &idx_file,
         }
         */
         string line;
-        if ( !getline(idx_file, line).good() ) {
+        if ( !getline(idx_file, line).good() || line.size() < 8 ) {
             break;
         }
 
@@ -131,7 +131,7 @@ vector<IdxEntry> bufferEntries(ifstream &idx_file,
 
         entry_buf.push_back(h_entry);
     }
-    cout << "after for" << endl;
+    //cout << "after for" << endl;
     /*
     vector<IdxEntry>::iterator iter;
     for (iter = entry_buf.begin() ; iter != entry_buf.end() ; iter++ ) {
