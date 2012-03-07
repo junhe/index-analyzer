@@ -114,7 +114,7 @@ void IdxSignature::discoverPattern(  vector<off_t> const &seq )
 
 //find out pattern of a number sequence(deltas) with its
 //original sequence
-void IdxSignature::discoverSigPattern( vector<off_t> const &seq,
+SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
                                     vector<off_t> const &orig )
 {
     // pointer(iterator) to the lookahead window, bot should move together
