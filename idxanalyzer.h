@@ -50,8 +50,8 @@ class IdxSigEntry {
     public:
         int proc;
         IdxSigUnit logical_offset;
-        vector<IdxSigUnit> length;
-        vector<IdxSigUnit> physical_offset;
+        SigStack<IdxSigUnit> length;
+        SigStack<IdxSigUnit> physical_offset;
 };
 
 template <class T> // T can be PatternUnit or IdxSigUnit
