@@ -26,7 +26,10 @@ int main(int argc, char ** argv)
 
     entry_buf = bufferEntries(idx_file, off_deltas);
     //mysig.discoverPattern( off_deltas );
-    mysig.generateIdxSignature(entry_buf, 0);
+    int proc;
+    for ( proc = 0 ; proc < 64 ; proc++ ) {
+        mysig.generateIdxSignature(entry_buf, proc);
+    }
 
     cout<<"End of the program"<<endl;
     return 0;
@@ -89,11 +92,6 @@ vector<IdxEntry> bufferEntries(ifstream &idx_file,
             break;
         }
        
-        //Debug
-        //Filter out only Proc 0
-        if ( h_entry.Proc != 0 ) {
-            continue;
-        }
 
         pre_l_offset = cur_l_offset;
         cur_l_offset = h_entry.Logical_offset;
