@@ -37,13 +37,14 @@ class PatternUnit {
         virtual void show() const
         {
             vector<off_t>::const_iterator iter;
+            cout << "( " ;
             for (iter = seq.begin();
                     iter != seq.end();
                     iter++ )
             {
-                cout << *iter << ", ";
+                cout << *iter << " ";
             }
-            cout << "^" << cnt << endl;
+            cout << ") ^" << cnt << endl;
         }
 };
 
@@ -55,7 +56,7 @@ class IdxSigUnit: public PatternUnit {
                     // logical offset, length, or physical offset
         void show() const
         {
-            cout << init << " - ";
+            cout << init << " ... ";
             PatternUnit::show();
         }
 };
