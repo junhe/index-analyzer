@@ -53,7 +53,7 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
     vector<off_t> logical_offset_delta, 
                     length_delta, 
                     physical_offset_delta; 
-
+    //cout<< "i am in generateIdxSignature" << endl;
     vector<IdxEntry>::const_iterator iter;
     for ( iter = entry_buf.begin() ; 
             iter != entry_buf.end() ;
@@ -78,10 +78,12 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
         //cout << iter->Physical_offset << " ";
         //cout << iter->Length << " ";
     }
-
+    
+    //cout << "before discoverSigPattern" << endl;
     SigStack<IdxSigUnit> offset_sig = 
         discoverSigPattern(logical_offset_delta, logical_offset);
-
+    //offset_sig.show();
+    //cout << "Just showed offset_sig" << endl;
     //Now, go through offset_sig one by one and build the IdxSigEntry s
     vector<IdxSigEntry>idx_entry_list;
     vector<IdxSigUnit>::const_iterator stack_iter;
@@ -210,7 +212,8 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
 
     //cout << endl << "this is discoverPattern() :)" << endl;
 
-    while ( p_lookahead_win != seq.end() ) {
+    //TODO: WHY p_lookahead_win != seq.end() is a dead loop????
+    while ( p_lookahead_win < seq.end() ) {
         //lookahead window is not empty
         Tuple cur_tuple = searchNeighbor( seq, p_lookahead_win );
         //cur_tuple.show();
