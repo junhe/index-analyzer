@@ -39,6 +39,8 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
         }
         cout << iter->Physical_offset << " ";
     }
+
+    discoverSigPattern(logical_offset_delta, logical_offset);
 }
 
 //find out pattern of a number sequence 

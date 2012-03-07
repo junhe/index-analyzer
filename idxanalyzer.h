@@ -115,7 +115,7 @@ class PatternStack {
             return the_stack.back();
         }
         
-        void show()
+        virtual void show()
         {
             typename vector<T>::const_iterator iter;
             
@@ -134,15 +134,40 @@ class PatternStack {
             }
         }
     
-    private:
+    protected:
         vector<T> the_stack;
+};
+
+template <class T>
+class SigStack: public PatternStack <T> 
+{
+    virtual void show()
+    {
+        typename vector<T>::const_iterator iter;
+
+        for ( iter = this->the_stack.begin();
+                iter != this->the_stack.end();
+                iter++ )
+        {
+            vector<off_t>::const_iterator off_iter;
+            cout << iter->init << "- " ;
+            for ( off_iter = (iter->seq).begin();
+                    off_iter != (iter->seq).end();
+                    off_iter++ )
+            {
+                cout << *off_iter << ", ";
+            }
+            cout << "^" << iter->cnt << endl;
+        }
+    }
+
 };
 
 class Tuple {
     public:
         int offset; //note that this is not the 
-                    // offset when accessing file. But
-                    // the offset in LZ77 algorithm
+        // offset when accessing file. But
+        // the offset in LZ77 algorithm
         int length; //concept in LZ77
         off_t next_symbol;
 
@@ -152,13 +177,13 @@ class Tuple {
             length = l;
             next_symbol = n;
         }
-        
+
         void put(int o, int l, off_t n) {
             offset = o;
             length = l;
             next_symbol = n;
         }
-        
+
         bool operator== (const Tuple other) {
             if (offset == other.offset 
                     && length == other.length
@@ -169,7 +194,7 @@ class Tuple {
                 return false;
             }
         }
-        
+
         // Tell if the repeating sequences are next to each other
         bool isRepeatingNeighbor() {
             return (offset == length && offset > 0);
@@ -205,16 +230,16 @@ class IdxSignature {
         IdxSignature():win_size(4) {} 
         void discoverPattern( vector<off_t> const &seq );
         void discoverSigPattern( vector<off_t> const &seq,
-                                    vector<off_t> const &orig );
+                vector<off_t> const &orig );
         //It takes in a entry buffer like in PLFS,
         //analyzes it and generate Index Signature Entries
         void generateIdxSignature(vector<IdxEntry> &entry_buf, int proc);
     private:
         vector<IdxEntry> entry_buf;
         int win_size; //window size
-        
+
         Tuple searchNeighbor( vector<off_t> const &seq,
-                              vector<off_t>::const_iterator p_lookahead_win ); 
+                vector<off_t>::const_iterator p_lookahead_win ); 
 };
 
 
