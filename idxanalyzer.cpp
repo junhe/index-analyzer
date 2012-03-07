@@ -2,6 +2,18 @@
 
 #include <algorithm>
 
+//for debugging
+void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
+{
+    vector<IdxSigEntry>::const_iterator iter;
+    for ( iter = idx_entry_list.begin();
+            iter != idx_entry_list.end();
+            iter++ )
+    {
+        
+    }
+}
+
 //IdxEntry is designed to mimic the HostEntry in PLFS,
 //so later I can easily copy and paste these code to PLFS
 //and make it work.
@@ -79,11 +91,6 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
     printIdxEntries(idx_entry_list);
 }
 
-//for debugging
-void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
-{
-    
-}
 
 
 //find out pattern of a number sequence 
