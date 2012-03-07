@@ -6,11 +6,15 @@
 void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
 {
     vector<IdxSigEntry>::const_iterator iter;
+
+    cout << "this is printIdxEntries" << endl;
+
     for ( iter = idx_entry_list.begin();
             iter != idx_entry_list.end();
             iter++ )
     {
-        
+       cout << "[" << iter->proc << "]" << endl;
+       vector<IdxSigUnit>::const_iterator iter;
     }
 }
 
@@ -85,6 +89,9 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
         idx_entry.logical_offset = *stack_iter;
         idx_entry.length = length_stack;
         idx_entry.physical_offset = physical_offset_stack;
+        
+        idx_entry_list.push_back( idx_entry);
+
 
         range_start = range_end;
     }
