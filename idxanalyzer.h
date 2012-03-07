@@ -14,6 +14,8 @@ using namespace std;
 
 #define off_t long long int
 
+template <class T> class SigStack;
+template <class T> class PatternStack;
 
 //used to describe a single pattern that found
 //This will be saved in the stack
@@ -39,19 +41,6 @@ class IdxSigUnit: public PatternUnit {
     public:
         off_t init; // the initial value of 
                     // logical offset, length, or physical offset
-};
-
-//This is the new entry for the new index
-//file using I/O signature. It corresponds to
-//HostEntry in old PLFS.
-//
-//Damn, where can I put the time stamp :(
-class IdxSigEntry {
-    public:
-        int proc;
-        IdxSigUnit logical_offset;
-        SigStack<IdxSigUnit> length;
-        SigStack<IdxSigUnit> physical_offset;
 };
 
 template <class T> // T can be PatternUnit or IdxSigUnit
@@ -114,6 +103,18 @@ class PatternStack {
             assert( the_stack.size() > 0 );
             return the_stack.back();
         }
+
+        typename vector<T>::const_iterator
+            begin()
+        {
+            return the_stack.begin();
+        }
+        
+        typename vector<T>::const_iterator
+            end()
+        {
+            return the_stack.end();
+        }
         
         virtual void show()
         {
@@ -138,6 +139,8 @@ class PatternStack {
         vector<T> the_stack;
 };
 
+//I really should not call it a stack since I use
+//it in many ways...
 template <class T>
 class SigStack: public PatternStack <T> 
 {
@@ -241,6 +244,19 @@ class IdxSignature {
 
         Tuple searchNeighbor( vector<off_t> const &seq,
                 vector<off_t>::const_iterator p_lookahead_win ); 
+};
+
+//This is the new entry for the new index
+//file using I/O signature. It corresponds to
+//HostEntry in old PLFS.
+//
+//Damn, where can I put the time stamp :(
+class IdxSigEntry {
+    public:
+        int proc;
+        IdxSigUnit logical_offset;
+        SigStack<IdxSigUnit> length;
+        SigStack<IdxSigUnit> physical_offset;
 };
 
 

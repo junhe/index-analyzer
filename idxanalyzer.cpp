@@ -43,6 +43,8 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
     SigStack<IdxSigUnit> offset_sig = 
         discoverSigPattern(logical_offset_delta, logical_offset);
 
+    //Now, go through offset_sig one by one and build the IdxSigEntry s
+    
 }
 
 //find out pattern of a number sequence 
