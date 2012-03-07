@@ -188,7 +188,7 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
         }
         pattern_stack.show();
     }
-
+    return pattern_stack;
 }
 
 Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
