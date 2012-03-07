@@ -86,6 +86,7 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
                     vector<off_t> (physical_offset.begin()+range_start,
                                    physical_offset.begin()+range_end) );
 
+        idx_entry.proc = proc;
         idx_entry.logical_offset = *stack_iter;
         idx_entry.length = length_stack;
         idx_entry.physical_offset = physical_offset_stack;
