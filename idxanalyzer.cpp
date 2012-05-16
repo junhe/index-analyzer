@@ -38,6 +38,20 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
     }
 }
 
+vector<off_t> buildDelta( vector<off_t> seq ) 
+{
+    vector<off_t>::iterator it;
+    vector<off_t> deltas;
+    for ( it = seq.begin() ; it != seq.end() ; it++ )
+    {
+        if ( it != seq.begin() ) {
+            deltas.push_back( *it - *(it-1) );
+        }
+    }
+
+    return deltas;
+}
+
 //IdxEntry is designed to mimic the HostEntry in PLFS,
 //so later I can easily copy and paste these code to PLFS
 //and make it work.
@@ -66,19 +80,31 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
         logical_offset.push_back(iter->Logical_offset);
         length.push_back(iter->Length);
         physical_offset.push_back(iter->Physical_offset);
-
-        if ( iter != entry_buf.begin() ) {
-            logical_offset_delta.push_back(
-                    iter->Logical_offset - (iter-1)->Logical_offset);
-            length_delta.push_back(
-                    iter->Length - (iter-1)->Length);
-            physical_offset_delta.push_back(
-                    iter->Physical_offset - (iter-1)->Physical_offset);
-        }
-        //cout << iter->Physical_offset << " ";
-        //cout << iter->Length << " ";
     }
-    
+
+  
+    if ( proc == 0 ) {
+        //For debugging purpose
+        vector<off_t>::iterator offiter;
+        cout << "******original offsets" << endl;
+        for ( offiter = logical_offset.begin() ; 
+                offiter != logical_offset.end() ;
+                offiter++ )
+        {
+            cout << *offiter << ", " ;
+        }    
+        cout << endl;
+        cout << "******offset deltas" << endl;
+        for ( offiter = logical_offset_delta.begin() ; 
+                offiter != logical_offset_delta.end() ;
+                offiter++ )
+        {
+            cout << *offiter << ", " ;
+        }   
+        cout << endl;
+    }
+
+
     //cout << "before discoverSigPattern" << endl;
     SigStack<IdxSigUnit> offset_sig = 
         discoverSigPattern(logical_offset_delta, logical_offset);
@@ -100,23 +126,23 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
         SigStack<IdxSigUnit> length_stack = 
             discoverSigPattern( 
                     vector<off_t> (length_delta.begin()+range_start,
-                                   length_delta.begin()+range_end),
+                        length_delta.begin()+range_end),
                     vector<off_t> (length.begin()+range_start,
-                                   length.begin()+range_end) );
+                        length.begin()+range_end) );
         //cout << "************End length" << endl;
 
         SigStack<IdxSigUnit> physical_offset_stack = 
             discoverSigPattern( 
                     vector<off_t> (physical_offset_delta.begin()+range_start,
-                                   physical_offset_delta.begin()+range_end),
+                        physical_offset_delta.begin()+range_end),
                     vector<off_t> (physical_offset.begin()+range_start,
-                                   physical_offset.begin()+range_end) );
+                        physical_offset.begin()+range_end) );
 
         idx_entry.proc = proc;
         idx_entry.logical_offset = *stack_iter;
         idx_entry.length = length_stack;
         idx_entry.physical_offset = physical_offset_stack;
-        
+
         idx_entry_list.push_back( idx_entry);
 
 
@@ -199,11 +225,11 @@ void IdxSignature::discoverPattern(  vector<off_t> const &seq )
 //find out pattern of a number sequence(deltas) with its
 //original sequence
 SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
-                                    vector<off_t> const &orig )
+        vector<off_t> const &orig )
 {
     // pointer(iterator) to the lookahead window, bot should move together
     vector<off_t>::const_iterator p_lookahead_win, 
-                                  p_lookahead_win_orig; 
+        p_lookahead_win_orig; 
     SigStack<IdxSigUnit> pattern_stack;
 
     p_lookahead_win = seq.begin();
@@ -246,7 +272,7 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
                     pattern_stack.popPattern();
                     pattern_stack.push(pu);
                     pu.init = *p_lookahead_win_orig; //should delete this. keep if only for 
-                                                     //tmp debug.
+                    //tmp debug.
 
                     p_lookahead_win += cur_tuple.length;
                     p_lookahead_win_orig += cur_tuple.length;
@@ -300,7 +326,7 @@ Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
     //cout << "search buf: " ;
     vector<off_t>::const_iterator k;
     for ( k = i ; k != p_lookahead_win ; k++ ) {
-        cout << *k << " ";
+    cout << *k << " ";
     }
     cout << endl;
 
@@ -308,9 +334,9 @@ Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
     vector<off_t>::const_iterator p;
     p = p_lookahead_win;
     for ( p = p_lookahead_win ; 
-            p != seq.end() && p - p_lookahead_win < win_size ; 
-            p++ ) {
-        cout << *p << " ";
+    p != seq.end() && p - p_lookahead_win < win_size ; 
+    p++ ) {
+    cout << *p << " ";
     }
     cout << endl;
     */
