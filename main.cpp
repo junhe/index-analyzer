@@ -17,11 +17,11 @@ int main(int argc, char ** argv)
     vector<IdxEntry> entry_buf;
     vector<off_t> off_deltas;
 
-    idx_file.open("trace.txt");
+    idx_file.open(argv[1]);
     if (idx_file.is_open()) {
-        cout << "file is open." << endl;
+        cout << "file is open: " << argv[1]  << endl;
     } else {
-        cout << "file is not open." << endl;
+        cout << "file is not open." << argv[1] << endl;
     }
 
     entry_buf = bufferEntries(idx_file, off_deltas);
