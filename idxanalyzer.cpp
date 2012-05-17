@@ -68,6 +68,7 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
                     length_delta, 
                     physical_offset_delta; 
     //cout<< "i am in generateIdxSignature" << endl;
+    static int totalsize = 0;
     vector<IdxEntry>::const_iterator iter;
     for ( iter = entry_buf.begin() ; 
             iter != entry_buf.end() ;

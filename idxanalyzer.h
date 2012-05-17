@@ -33,6 +33,11 @@ class PatternUnit {
         {
             return seq.size()*cnt;
         }
+        
+        int memsize() 
+        {
+            return sizeof(cnt) + sizeof(off_t)*seq.size();
+        }
 
         virtual void show() const
         {
@@ -58,6 +63,10 @@ class IdxSigUnit: public PatternUnit {
         {
             cout << init << " ... ";
             PatternUnit::show();
+        }
+
+        int memsize() {
+            return sizeof(init) + PatternUnit::memsize();
         }
 };
 
@@ -186,6 +195,19 @@ class SigStack: public PatternStack <T>
             }
         }
 
+        int memsize() 
+        {
+            typename vector<T>::const_iterator iter;
+            int totalsize = 0;
+            for ( iter = PatternStack<T>::the_stack.begin();
+                    iter != PatternStack<T>::the_stack.end();
+                    iter++)
+            {
+                totalsize += ((T)(*iter)).memsize();
+            }
+            return totalsize;
+        }
+
 };
 
 class Tuple {
@@ -273,6 +295,13 @@ class IdxSignature {
 //
 //Damn, where can I put the time stamp :(
 class IdxSigEntry {
+    public:
+        int memsize() 
+        {
+            return sizeof(proc) + logical_offset.memsize() 
+                + length.memsize() + physical_offset.memsize();
+        }
+
     public:
         int proc;
         IdxSigUnit logical_offset;
