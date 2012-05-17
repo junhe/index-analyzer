@@ -153,6 +153,9 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
         range_start = range_end;
     }
     printIdxEntries(idx_entry_list);
+    static int totalsize = 0;
+    totalsize += idx_entry_list.capacity();
+    fprintf(stderr, "so far, total size is: %d.\n", totalsize);
 }
 
 

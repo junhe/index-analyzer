@@ -80,7 +80,7 @@ vector<IdxEntry> bufferEntries(ifstream &idx_file,
     IdxEntry h_entry;
     IdxEntry &idx_entry = h_entry;
     vector<IdxEntry> entry_buf;
-    int bufsize = 100000 ;
+    int bufsize = 4194305 ;
     int i;
     off_t pre_l_offset, cur_l_offset; //logical offset
     

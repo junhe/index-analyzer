@@ -252,7 +252,7 @@ class IdxEntry {
 // Each index has its own signature
 class IdxSignature {
     public:
-        IdxSignature():win_size(4) {} 
+        IdxSignature():win_size(6) {} 
         void discoverPattern( vector<off_t> const &seq );
         SigStack<IdxSigUnit> discoverSigPattern( vector<off_t> const &seq,
                 vector<off_t> const &orig );
