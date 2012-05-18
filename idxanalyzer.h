@@ -284,7 +284,6 @@ class IdxSignature {
     private:
         vector<IdxEntry> entry_buf;
         int win_size; //window size
-
         Tuple searchNeighbor( vector<off_t> const &seq,
                 vector<off_t>::const_iterator p_lookahead_win ); 
 };
