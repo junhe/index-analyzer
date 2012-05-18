@@ -147,16 +147,15 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
         idx_entry.logical_offset = *stack_iter;
         idx_entry.length = length_stack;
         idx_entry.physical_offset = physical_offset_stack;
-
+        
         idx_entry_list.push_back( idx_entry);
-
+        totalsize += idx_entry.memsize();
 
         range_start = range_end;
     }
     printIdxEntries(idx_entry_list);
-    static int totalsize = 0;
-    totalsize += idx_entry_list.capacity();
-    fprintf(stderr, "so far, total size is: %d.\n", totalsize);
+    fprintf(stderr, "so far(proc:%d), total size is: %d Bytes (%d KB).\n", 
+            proc, totalsize, totalsize/1024);
 }
 
 

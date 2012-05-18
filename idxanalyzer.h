@@ -310,5 +310,6 @@ class IdxSigEntry {
 };
 
 
+void printIdxEntries( vector<IdxSigEntry> &idx_entry_list );
 #endif
 
