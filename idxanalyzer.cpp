@@ -392,3 +392,9 @@ void IdxSigEntryList::append( IdxSigEntryList &other )
 
 }
 
+void IdxSigEntryList::show()
+{
+    printIdxEntries(list);
+}
+
+

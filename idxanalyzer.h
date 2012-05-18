@@ -314,7 +314,7 @@ class IdxSigEntryList {
         vector<IdxSigEntry> list;
         //TODO:
         void append(IdxSigEntryList &other);
-        //show();
+        void show();
         //void saveToFile();
         //void readFromFile();
 };
