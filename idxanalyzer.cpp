@@ -14,12 +14,13 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
             iter++ )
     {
         cout << "[" << iter->proc << "]" << endl;
-        cout << "----Logical Offset----" << endl;
+        //cout << "----Logical Offset----" << endl;
         iter->logical_offset.show();
         
         vector<IdxSigUnit>::const_iterator iter2;
 
-        cout << "----Length----" << endl;
+        cout << "-" << endl;
+        //cout << "----Length----" << endl;
         for (iter2 = iter->length.begin();
                 iter2 != iter->length.end();
                 iter2++ )
@@ -27,14 +28,15 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
             iter2->show(); 
         }
 
-        cout << "----Physical Offset----" << endl;
+        cout << "-" << endl;
+        //cout << "----Physical Offset----" << endl;
         for (iter2 = iter->physical_offset.begin();
                 iter2 != iter->physical_offset.end();
                 iter2++ )
         {
             iter2->show(); 
         }
-        cout << "-------------------------------------" << endl;
+        //cout << "-------------------------------------" << endl;
     }
 }
 
@@ -244,6 +246,16 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
     pattern_stack.clear();
 
     //cout << endl << "this is discoverPattern() :)" << endl;
+
+    //for the case there is only one entry
+    if ( seq.size() == 0 ) {
+        IdxSigUnit pu;
+        pu.init = *p_lookahead_win_orig;
+        pu.cnt = 0;
+    }
+        
+
+
 
     //TODO: WHY p_lookahead_win != seq.end() is a dead loop????
     while ( p_lookahead_win < seq.end() ) {
