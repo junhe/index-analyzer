@@ -14,13 +14,12 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
             iter++ )
     {
         cout << "[" << iter->proc << "]" << endl;
-        //cout << "----Logical Offset----" << endl;
+        cout << "----Logical Offset----" << endl;
         iter->logical_offset.show();
         
         vector<IdxSigUnit>::const_iterator iter2;
 
-        cout << "-" << endl;
-        //cout << "----Length----" << endl;
+        cout << "----Length----" << endl;
         for (iter2 = iter->length.begin();
                 iter2 != iter->length.end();
                 iter2++ )
@@ -28,15 +27,14 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
             iter2->show(); 
         }
 
-        cout << "-" << endl;
-        //cout << "----Physical Offset----" << endl;
+        cout << "----Physical Offset----" << endl;
         for (iter2 = iter->physical_offset.begin();
                 iter2 != iter->physical_offset.end();
                 iter2++ )
         {
             iter2->show(); 
         }
-        //cout << "-------------------------------------" << endl;
+        cout << "-------------------------------------" << endl;
     }
 }
 
@@ -46,11 +44,11 @@ vector<off_t> buildDeltas( vector<off_t> seq )
     vector<off_t> deltas;
     for ( it = seq.begin() ; it != seq.end() ; it++ )
     {
-        if ( it != seq.begin() ) {
+        if ( it > seq.begin() ) {
             deltas.push_back( *it - *(it-1) );
         }
     }
-
+    //cout << "in builddeltas: " << seq.size() << " " << deltas.size() << endl; 
     return deltas;
 }
 
@@ -62,14 +60,14 @@ vector<off_t> buildDeltas( vector<off_t> seq )
 //TODO:
 //But do we really need to separate entries by proc at first?
 //Also, have to handle the case that there is only one entry
-void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf, 
+IdxSigEntryList IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf, 
                                         int proc) 
 {
     vector<off_t> logical_offset, length, physical_offset; 
     vector<off_t> logical_offset_delta, 
                     length_delta, 
-                    physical_offset_delta; 
-    //cout<< "i am in generateIdxSignature" << endl;
+                    physical_offset_delta;
+    IdxSigEntryList entrylist;
     static int totalsize = 0;
     vector<IdxEntry>::const_iterator iter;
     for ( iter = entry_buf.begin() ; 
@@ -88,7 +86,6 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
     logical_offset_delta = buildDeltas(logical_offset);
     length_delta = buildDeltas(length);
     physical_offset_delta = buildDeltas(physical_offset);
- 
     /*
     if ( proc == 0 ) {
         //For debugging purpose
@@ -135,7 +132,9 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
                     vector<off_t> (length_delta.begin()+range_start,
                         length_delta.begin()+range_end),
                     vector<off_t> (length.begin()+range_start,
-                        length.begin()+range_end) );
+                        length.begin()+range_end) ); //this one pointed by length.begin()+range_end 
+                                                     //won't be paseed in. The total size passed is
+                                                     //stack_iter.size();
         //cout << "************End length" << endl;
 
         SigStack<IdxSigUnit> physical_offset_stack = 
@@ -155,9 +154,12 @@ void IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
 
         range_start = range_end;
     }
-    printIdxEntries(idx_entry_list);
+    entrylist.append(idx_entry_list);
+    //printIdxEntries(idx_entry_list);
+    entrylist.show();
     fprintf(stderr, "so far(proc:%d), total size is: %d Bytes (%d KB).\n", 
             proc, totalsize, totalsize/1024);
+    return entrylist;
 }
 
 
@@ -246,6 +248,14 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
     pattern_stack.clear();
 
     //cout << endl << "this is discoverPattern() :)" << endl;
+   
+    //TODO:
+    //There's bug in handling the case of only one entry.
+    //And whether 1,(3,4)^2 represnets five or four numbers.
+    //Go back to handle this when protoc buffer is integrated.
+    /*
+    cout << "seq.size(): " << seq.size() << "orig.size():" << orig.size() << endl;
+    assert(seq.size() == (orig.size()-1));
 
     //for the case there is only one entry
     if ( seq.size() == 0 ) {
@@ -253,7 +263,7 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
         pu.init = *p_lookahead_win_orig;
         pu.cnt = 0;
     }
-        
+    */    
 
 
 
@@ -380,16 +390,21 @@ Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
     return Tuple(0, 0, *(p_lookahead_win));
 }
 
-void IdxSigEntryList::append( IdxSigEntryList &other ) 
+void IdxSigEntryList::append( vector<IdxSigEntry> &other ) 
 {
     vector<IdxSigEntry>::iterator iter;
-    for (iter = other.list.begin();
-            iter != other.list.end();
+    for (iter = other.begin();
+            iter != other.end();
             iter++ )
     {
         list.push_back(*iter);
     }
 
+}
+
+void IdxSigEntryList::append( IdxSigEntryList &other ) 
+{
+    append(other.list);
 }
 
 void IdxSigEntryList::show()

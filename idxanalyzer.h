@@ -16,6 +16,7 @@ using namespace std;
 
 template <class T> class SigStack;
 template <class T> class PatternStack;
+class IdxSigEntryList;
 
 //used to describe a single pattern that found
 //This will be saved in the stack
@@ -280,7 +281,7 @@ class IdxSignature {
                 vector<off_t> const &orig );
         //It takes in a entry buffer like in PLFS,
         //analyzes it and generate Index Signature Entries
-        void generateIdxSignature(vector<IdxEntry> &entry_buf, int proc);
+        IdxSigEntryList generateIdxSignature(vector<IdxEntry> &entry_buf, int proc);
     private:
         vector<IdxEntry> entry_buf;
         int win_size; //window size
@@ -314,6 +315,7 @@ class IdxSigEntryList {
         vector<IdxSigEntry> list;
         //TODO:
         void append(IdxSigEntryList &other);
+        void append(vector<IdxSigEntry> &other);
         void show();
         //void saveToFile();
         //void readFromFile();

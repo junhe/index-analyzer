@@ -26,6 +26,7 @@ int main(int argc, char ** argv)
 
     entry_buf = bufferEntries(idx_file, off_deltas);
     cout << "after bufferEntries" << endl;
+    cout << "size is: " << entry_buf.size() << endl;;
     //mysig.discoverPattern( off_deltas );
     int proc;
     for ( proc = 0 ; proc < 64 ; proc++ ) {
