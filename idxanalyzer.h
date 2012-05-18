@@ -309,6 +309,16 @@ class IdxSigEntry {
 };
 
 
+class IdxSigEntryList {
+    public:
+        vector<IdxSigEntry> list;
+        //TODO:
+        void append(IdxSigEntryList &other);
+        //show();
+        //void saveToFile();
+        //void readFromFile();
+};
+
 void printIdxEntries( vector<IdxSigEntry> &idx_entry_list );
 #endif
 

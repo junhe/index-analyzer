@@ -380,4 +380,15 @@ Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
     return Tuple(0, 0, *(p_lookahead_win));
 }
 
+void IdxSigEntryList::append( IdxSigEntryList &other ) 
+{
+    vector<IdxSigEntry>::iterator iter;
+    for (iter = other.list.begin();
+            iter != other.list.end();
+            iter++ )
+    {
+        list.push_back(*iter);
+    }
+
+}
 
