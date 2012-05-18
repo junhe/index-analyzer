@@ -70,6 +70,7 @@ IdxSigEntryList IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
     IdxSigEntryList entrylist;
     static int totalsize = 0;
     vector<IdxEntry>::const_iterator iter;
+    //cout<< "i am in generateIdxSignature" << endl << "entry_buf.size()=" << entry_buf.size() << endl;
     for ( iter = entry_buf.begin() ; 
             iter != entry_buf.end() ;
             iter++ )
@@ -83,9 +84,12 @@ IdxSigEntryList IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
         physical_offset.push_back(iter->Physical_offset);
     }
     
+    fflush(stdout);
     logical_offset_delta = buildDeltas(logical_offset);
     length_delta = buildDeltas(length);
     physical_offset_delta = buildDeltas(physical_offset);
+
+    fflush(stdout);
     /*
     if ( proc == 0 ) {
         //For debugging purpose
@@ -109,7 +113,6 @@ IdxSigEntryList IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
     }
     */
 
-    //cout << "before discoverSigPattern" << endl;
     SigStack<IdxSigUnit> offset_sig = 
         discoverSigPattern(logical_offset_delta, logical_offset);
     //offset_sig.show();
