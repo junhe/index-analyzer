@@ -212,6 +212,13 @@ void IdxSignature::discoverPattern(  vector<off_t> const &seq )
 
 //find out pattern of a number sequence(deltas) with its
 //original sequence
+//if seq and orig have the same sizes.
+//  the function returns pattern representing all orig numbers.
+//else if orig has one more than seq (including seq.size()==0)
+//  the function returns pattern representing all orig numbers, 
+//  with the last orig num with seq.size()==0
+//else
+//  error
 SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
         vector<off_t> const &orig )
 {
@@ -223,6 +230,14 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
     p_lookahead_win = seq.begin();
     p_lookahead_win_orig = orig.begin();
     pattern_stack.clear();
+
+    if (! (seq.size() == orig.size()
+            || seq.size() + 1 == orig.size() ) )
+    {
+        fprintf(stderr, "discoverSigPattern() needs to be used with "
+                "seq.size==orig.size or seq.size+1==orig.size");
+        exit(-1);
+    }
 
     //cout << endl << "this is discoverPattern() :)" << endl;
    
@@ -306,8 +321,17 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
             p_lookahead_win++;
             p_lookahead_win_orig++;
         }
-        //pattern_stack.show();
     }
+   
+    if ( p_lookahead_win_orig < orig.end() ) {
+        assert(p_lookahead_win_orig + 1 == orig.end());
+        IdxSigUnit pu;
+        pu.init = *p_lookahead_win_orig;
+        pu.cnt = 0;
+
+        pattern_stack.push(pu); 
+    }
+
     return pattern_stack;
 }
 
@@ -405,7 +429,7 @@ void idxSigUnit2PBSigUnit( const IdxSigUnit &iunit, idxfile::SigUnit *pbunit )
 }
 
 void IdxSigEntryList::siglistToPblist(vector<IdxSigEntry> &slist,
-                idxfile::EntryList &pblist)
+        idxfile::EntryList &pblist)
 {
     //read out every entry in slist and put it to pblist
     vector<IdxSigEntry>::iterator iter;
@@ -418,7 +442,7 @@ void IdxSigEntryList::siglistToPblist(vector<IdxSigEntry> &slist,
         fentry->set_proc( (*iter).proc );
         idxfile::SigUnit *su = fentry->mutable_logical_offset();
         idxSigUnit2PBSigUnit( (*iter).logical_offset, su );
-        
+
         //length
         vector<IdxSigUnit>::const_iterator iter2;
         for ( iter2 = (*iter).length.begin();
@@ -428,7 +452,7 @@ void IdxSigEntryList::siglistToPblist(vector<IdxSigEntry> &slist,
             idxfile::SigUnit *su = fentry->add_length();
             idxSigUnit2PBSigUnit( (*iter2), su);
         }
- 
+
         //physical offset
         for ( iter2 = (*iter).length.begin();
                 iter2 != (*iter).length.end();

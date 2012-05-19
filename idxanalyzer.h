@@ -32,7 +32,11 @@ class PatternUnit {
         //return number of elements in total
         int size() const 
         {
-            return seq.size()*cnt;
+            if ( cnt == 0 ) {
+                return 1; //not repetition
+            } else {
+                return seq.size()*cnt;
+            }
         }
         
         int memsize() 
@@ -327,5 +331,6 @@ class IdxSigEntryList {
 };
 
 void printIdxEntries( vector<IdxSigEntry> &idx_entry_list );
+vector<off_t> buildDeltas( vector<off_t> seq );
 #endif
 
