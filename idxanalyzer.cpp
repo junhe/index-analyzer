@@ -88,29 +88,6 @@ IdxSigEntryList IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
     length_delta = buildDeltas(length);
     physical_offset_delta = buildDeltas(physical_offset);
 
-    /*
-    if ( proc == 0 ) {
-        //For debugging purpose
-        vector<off_t>::iterator offiter;
-        cout << "******original offsets" << endl;
-        for ( offiter = logical_offset.begin() ; 
-                offiter != logical_offset.end() ;
-                offiter++ )
-        {
-            cout << *offiter << ", " ;
-        }    
-        cout << endl;
-        cout << "******offset deltas" << endl;
-        for ( offiter = logical_offset_delta.begin() ; 
-                offiter != logical_offset_delta.end() ;
-                offiter++ )
-        {
-            cout << *offiter << ", " ;
-        }   
-        cout << endl << "end offset" << endl;
-    }
-    */
-
     SigStack<IdxSigUnit> offset_sig = 
         discoverSigPattern(logical_offset_delta, logical_offset);
     //offset_sig.show();
