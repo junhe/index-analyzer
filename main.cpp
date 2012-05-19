@@ -16,6 +16,9 @@ int main(int argc, char ** argv)
     ifstream idx_file;
     vector<IdxEntry> entry_buf;
     vector<off_t> off_deltas;
+    idxfile::EntryList pb_entrylist;
+    IdxSigEntryList sig_entrylist;
+
 
     idx_file.open(argv[1]);
     if (idx_file.is_open()) {
@@ -30,8 +33,22 @@ int main(int argc, char ** argv)
     //mysig.discoverPattern( off_deltas );
     int proc;
     for ( proc = 0 ; proc < 64 ; proc++ ) {
-        mysig.generateIdxSignature(entry_buf, proc);
+        sig_entrylist.append(mysig.generateIdxSignature(entry_buf, proc));
     }
+    cout << "let the show begin()\n";
+    sig_entrylist.show();
+    //sig_entrylist.siglistToPblist(sig_entrylist.list, pb_entrylist);
+    //cout << pb_entrylist.DebugString();
+    sig_entrylist.saveToFile("hahafile");
+    return 1;
+    fstream output("myfile", ios::out | ios::trunc | ios::binary);
+    if ( !pb_entrylist.SerializeToOstream(&output) ) {
+        cerr<<"failed to write to myfile."<<endl;
+        return -1;
+    } else {
+        cout<<"Write to myfile: OK"<<endl;
+    }
+
 
     cout<<"End of the program"<<endl;
     return 0;
@@ -74,8 +91,8 @@ bool getNextEntry( IdxEntry &idx_entry, ifstream &idx_file )
 }
 
 vector<IdxEntry> bufferEntries(ifstream &idx_file,
-                               vector<off_t> &off_deltas
-                              )
+        vector<off_t> &off_deltas
+        )
 {
     //cout << "i am bufferEntries()" << endl;
     IdxEntry h_entry;
@@ -84,21 +101,21 @@ vector<IdxEntry> bufferEntries(ifstream &idx_file,
     int bufsize = 4194305 ;
     int i;
     off_t pre_l_offset, cur_l_offset; //logical offset
-    
+
 
     //init the offset deltas
     off_deltas.clear();
     pre_l_offset = 0;
     cur_l_offset = 0;
-    
+
     //cout << "before for" << endl;
     for ( i = 0 ; i < bufsize && idx_file.good(); i++ ) {
         //cout << i << ".";
         //fflush(stdout);
         /*
-        if (!getNextEntry( h_entry, idx_file )) {
-            //failed to get next entry
-            break;
+           if (!getNextEntry( h_entry, idx_file )) {
+        //failed to get next entry
+        break;
         }
         */
         string line;
@@ -121,7 +138,7 @@ vector<IdxEntry> bufferEntries(ifstream &idx_file,
         idx_entry.End_timestamp = atof( tokens[5].c_str() );
         sscanf( tokens[6].c_str(), "%lld", &idx_entry.Logical_tail);
         sscanf( tokens[8].c_str(), "%lld", &idx_entry.Physical_offset);
-        
+
 
         pre_l_offset = cur_l_offset;
         cur_l_offset = h_entry.Logical_offset;
@@ -134,21 +151,21 @@ vector<IdxEntry> bufferEntries(ifstream &idx_file,
     }
     //cout << "after for" << endl;
     /*
-    vector<IdxEntry>::iterator iter;
-    for (iter = entry_buf.begin() ; iter != entry_buf.end() ; iter++ ) {
-        //cout << (*iter).Logical_offset << " ";
-        printf("%lld ", (*iter).Logical_offset );
-    }
-    cout << endl;
-    cout << "==================================================" << endl; 
-    vector<off_t>::iterator iter2;
-    for (iter2 = off_deltas.begin() ; iter2 != off_deltas.end() ; iter2++ ) {
-        cout << (*iter2) << " ";
-    }
-    cout << endl;
-    
-    cout << "end of bufferEntries" << endl;
-    */
-    return entry_buf;
+       vector<IdxEntry>::iterator iter;
+       for (iter = entry_buf.begin() ; iter != entry_buf.end() ; iter++ ) {
+//cout << (*iter).Logical_offset << " ";
+printf("%lld ", (*iter).Logical_offset );
+}
+cout << endl;
+cout << "==================================================" << endl; 
+vector<off_t>::iterator iter2;
+for (iter2 = off_deltas.begin() ; iter2 != off_deltas.end() ; iter2++ ) {
+cout << (*iter2) << " ";
+}
+cout << endl;
+
+cout << "end of bufferEntries" << endl;
+*/
+return entry_buf;
 }
 

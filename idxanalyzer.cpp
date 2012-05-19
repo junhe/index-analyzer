@@ -14,12 +14,12 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
             iter++ )
     {
         cout << "[" << iter->proc << "]" << endl;
-        cout << "----Logical Offset----" << endl;
+        //cout << "----Logical Offset----" << endl;
         iter->logical_offset.show();
         
         vector<IdxSigUnit>::const_iterator iter2;
 
-        cout << "----Length----" << endl;
+        //cout << "----Length----" << endl;
         for (iter2 = iter->length.begin();
                 iter2 != iter->length.end();
                 iter2++ )
@@ -27,14 +27,14 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
             iter2->show(); 
         }
 
-        cout << "----Physical Offset----" << endl;
+        //cout << "----Physical Offset----" << endl;
         for (iter2 = iter->physical_offset.begin();
                 iter2 != iter->physical_offset.end();
                 iter2++ )
         {
             iter2->show(); 
         }
-        cout << "-------------------------------------" << endl;
+        //cout << "-------------------------------------" << endl;
     }
 }
 
@@ -84,12 +84,10 @@ IdxSigEntryList IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
         physical_offset.push_back(iter->Physical_offset);
     }
     
-    fflush(stdout);
     logical_offset_delta = buildDeltas(logical_offset);
     length_delta = buildDeltas(length);
     physical_offset_delta = buildDeltas(physical_offset);
 
-    fflush(stdout);
     /*
     if ( proc == 0 ) {
         //For debugging purpose
@@ -159,7 +157,6 @@ IdxSigEntryList IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
     }
     entrylist.append(idx_entry_list);
     //printIdxEntries(idx_entry_list);
-    entrylist.show();
     fprintf(stderr, "so far(proc:%d), total size is: %d Bytes (%d KB).\n", 
             proc, totalsize, totalsize/1024);
     return entrylist;
@@ -405,7 +402,7 @@ void IdxSigEntryList::append( vector<IdxSigEntry> &other )
 
 }
 
-void IdxSigEntryList::append( IdxSigEntryList &other ) 
+void IdxSigEntryList::append( IdxSigEntryList other ) 
 {
     append(other.list);
 }
@@ -415,4 +412,66 @@ void IdxSigEntryList::show()
     printIdxEntries(list);
 }
 
+
+
+void idxSigUnit2PBSigUnit( const IdxSigUnit &iunit, idxfile::SigUnit *pbunit )
+{
+    pbunit->set_init(iunit.init);
+    vector<off_t>::const_iterator iter;
+    for ( iter = iunit.seq.begin();
+            iter != iunit.seq.end();
+            iter++ )
+    {
+        pbunit->add_deltas(*iter);
+    }
+    pbunit->set_cnt(iunit.cnt);
+}
+
+void IdxSigEntryList::siglistToPblist(vector<IdxSigEntry> &slist,
+                idxfile::EntryList &pblist)
+{
+    //read out every entry in slist and put it to pblist
+    vector<IdxSigEntry>::iterator iter;
+
+    for ( iter = slist.begin();
+            iter != slist.end();
+            iter++)
+    {
+        idxfile::Entry *fentry = pblist.add_entry();
+        fentry->set_proc( (*iter).proc );
+        idxfile::SigUnit *su = fentry->mutable_logical_offset();
+        idxSigUnit2PBSigUnit( (*iter).logical_offset, su );
+        
+        //length
+        vector<IdxSigUnit>::const_iterator iter2;
+        for ( iter2 = (*iter).length.begin();
+                iter2 != (*iter).length.end();
+                iter2++ )
+        {
+            idxfile::SigUnit *su = fentry->add_length();
+            idxSigUnit2PBSigUnit( (*iter2), su);
+        }
+ 
+        //physical offset
+        for ( iter2 = (*iter).length.begin();
+                iter2 != (*iter).length.end();
+                iter2++ )
+        {
+            idxfile::SigUnit *su = fentry->add_physical_offset();
+            idxSigUnit2PBSigUnit( (*iter2), su);
+        }
+    }
+}
+
+void IdxSigEntryList::saveToFile(char *filename)
+{
+    siglistToPblist(list, pb_list);
+    fstream output(filename, ios::out | ios::trunc | ios::binary);
+    if ( !pb_list.SerializeToOstream(&output) ) {
+        cerr<<"failed to write to myfile."<<endl;
+    } else {
+        cout<<"Write to myfile: OK"<<endl;
+    }
+    output.close();
+}
 

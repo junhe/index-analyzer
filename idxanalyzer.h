@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <stdio.h>
-
+#include "protobuf/index.pb.h"
 
 using namespace std;
 
@@ -313,12 +313,18 @@ class IdxSigEntry {
 class IdxSigEntryList {
     public:
         vector<IdxSigEntry> list;
-        //TODO:
-        void append(IdxSigEntryList &other);
+    private:
+        idxfile::EntryList pb_list;
+
+    public:
+        void append(IdxSigEntryList other);
         void append(vector<IdxSigEntry> &other);
         void show();
-        //void saveToFile();
+        //TODO:
+        void saveToFile(char *filename);
         //void readFromFile();
+        void siglistToPblist(vector<IdxSigEntry> &slist,
+                idxfile::EntryList &pblist);
 };
 
 void printIdxEntries( vector<IdxSigEntry> &idx_entry_list );
