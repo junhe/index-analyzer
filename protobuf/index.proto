@@ -1,0 +1,18 @@
+package idxfile;
+
+message SigUnit {
+    required int64 init = 1;
+    repeated int64 deltas = 2;
+    required int64 cnt = 3;
+}
+
+message Entry {
+    required int64 proc = 1;
+    required SigUnit logical_offset = 2;
+    repeated SigUnit length = 3;
+    repeated SigUnit physical_offset = 4;
+}
+
+message EntryList {
+    repeated Entry entry = 1;
+}
