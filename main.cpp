@@ -40,6 +40,8 @@ int main(int argc, char ** argv)
     //sig_entrylist.siglistToPblist(sig_entrylist.list, pb_entrylist);
     //cout << pb_entrylist.DebugString();
     sig_entrylist.saveToFile("hahafile");
+    sig_entrylist.readFromFile("hahafile");
+    cout << sig_entrylist.pb_list.DebugString();
     return 1;
     fstream output("myfile", ios::out | ios::trunc | ios::binary);
     if ( !pb_entrylist.SerializeToOstream(&output) ) {
@@ -48,7 +50,6 @@ int main(int argc, char ** argv)
     } else {
         cout<<"Write to myfile: OK"<<endl;
     }
-
 
     cout<<"End of the program"<<endl;
     return 0;

@@ -313,7 +313,6 @@ class IdxSigEntry {
 class IdxSigEntryList {
     public:
         vector<IdxSigEntry> list;
-    private:
         idxfile::EntryList pb_list;
 
     public:
@@ -322,7 +321,7 @@ class IdxSigEntryList {
         void show();
         //TODO:
         void saveToFile(char *filename);
-        //void readFromFile();
+        void readFromFile(char *filename);
         void siglistToPblist(vector<IdxSigEntry> &slist,
                 idxfile::EntryList &pblist);
 };

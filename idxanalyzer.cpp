@@ -475,3 +475,16 @@ void IdxSigEntryList::saveToFile(char *filename)
     output.close();
 }
 
+void IdxSigEntryList::readFromFile(char *filename)
+{
+    fstream input(filename, ios::in | ios::binary);
+    if ( !input ) {
+        cerr << "can not open my file.\n";
+    } else if ( !pb_list.ParseFromIstream(&input) ) {
+        cerr << "failed to parse from myfile\n";
+    }
+    input.close();
+}
+
+
+
