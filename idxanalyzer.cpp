@@ -104,11 +104,17 @@ IdxSigEntryList IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
         //cout << stack_iter->init << " " ;
         IdxSigEntry idx_entry;
         range_end = range_start + stack_iter->size();
-        //cout << "************start length" << endl;
+
+        vector<off_t>::iterator lstart, lend;
+        lstart = length_delta.begin() + range_start;
+        if ( length_delta.end() - (length_delta.begin() + range_end) > 0 ) {
+            lend = length_delta.begin() + range_end;
+        } else {
+            lend = length_delta.end();
+        }
         SigStack<IdxSigUnit> length_stack = 
             discoverSigPattern( 
-                    vector<off_t> (length_delta.begin()+range_start,
-                        length_delta.begin()+range_end),
+                    vector<off_t> (lstart, lend),
                     vector<off_t> (length.begin()+range_start,
                         length.begin()+range_end) ); //this one pointed by length.begin()+range_end 
                                                      //won't be paseed in. The total size passed is
@@ -117,8 +123,7 @@ IdxSigEntryList IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
 
         SigStack<IdxSigUnit> physical_offset_stack = 
             discoverSigPattern( 
-                    vector<off_t> (physical_offset_delta.begin()+range_start,
-                        physical_offset_delta.begin()+range_end),
+                    vector<off_t>(lstart, lend),
                     vector<off_t> (physical_offset.begin()+range_start,
                         physical_offset.begin()+range_end) );
 
