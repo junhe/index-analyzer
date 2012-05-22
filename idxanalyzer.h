@@ -82,7 +82,7 @@ class IdxSigUnit: public PatternUnit {
             return sizeof(init) + PatternUnit::memsize();
         }
        
-        int32_t bytesize();
+        int32_t bodySize();
         string serialize();
         void deSerialize(string buf);
 };
@@ -181,6 +181,7 @@ class PatternStack {
                 */
             }
         }
+        int bodySize();
         string serialize();    
         void deSerialize( string buf );
     protected:
@@ -325,6 +326,8 @@ class IdxSigEntry {
         SigStack<IdxSigUnit> length;
         SigStack<IdxSigUnit> physical_offset;
         string serialize();
+        void deSerialize(string buf);
+        int bodySize();
 };
 
 
@@ -351,30 +354,28 @@ template <class T>
 string 
 PatternStack<T>::serialize()
 {
-    int32_t totalsize = 0;
+    int32_t bodysize = 0;
     string buf;
-
     typename vector<T>::iterator iter;
-    for ( iter = the_stack.begin() ; 
-            iter != the_stack.end() ;
-            iter++ )
-    {
-        totalsize += iter->bytesize();
-    }
-    cout << "total size put in: " << totalsize << endl;
-    appendToBuffer(buf, &totalsize, sizeof(totalsize));
+    int32_t realtotalsize = 0;
+
+    bodysize = bodySize();
+    //cout << "data size put in: " << bodysize << endl;
+    appendToBuffer(buf, &bodysize, sizeof(bodysize));
     for ( iter = the_stack.begin() ; 
             iter != the_stack.end() ;
             iter++ )
     {
         string unit = iter->serialize();
         appendToBuffer(buf, &unit[0], unit.size());
+        realtotalsize += unit.size();
         //to test if it serilized right
-        IdxSigUnit tmp;
-        tmp.deSerialize(unit);
-        cout << "test show.\n";
-        tmp.show();
+        //IdxSigUnit tmp;
+        //tmp.deSerialize(unit);
+        //cout << "test show.\n";
+        //tmp.show();
     }
+    assert(realtotalsize == bodysize);
     return buf;
 }
 
@@ -382,31 +383,47 @@ template <class T>
 void
 PatternStack<T>::deSerialize( string buf )
 {
-    int32_t totalsize;
+    int32_t bodysize;
     int cur_start = 0;
     
     clear(); 
 
-    readFromBuf(buf, &totalsize, cur_start, sizeof(totalsize));
-    cout << "total size read out: " << totalsize << endl;
-    while ( cur_start < totalsize ) {
-        int32_t unitbytesize;
+    readFromBuf(buf, &bodysize, cur_start, sizeof(bodysize));
+    //cout << "body size read out: " << bodysize << endl;
+    while ( cur_start < bodysize ) {
+        int32_t unitbodysize;
         string unitbuf;
         T sigunit;
 
-        readFromBuf(buf, &unitbytesize, cur_start, sizeof(unitbytesize));
-        cout << "Unitbytesize:" << unitbytesize << endl;
-        int sizeofheadandunit = sizeof(unitbytesize) + unitbytesize;
+        readFromBuf(buf, &unitbodysize, cur_start, sizeof(unitbodysize));
+        //cout << "Unitbodysize:" << unitbodysize << endl;
+        int sizeofheadandunit = sizeof(unitbodysize) + unitbodysize;
         unitbuf.resize(sizeofheadandunit);
-        if ( unitbytesize > 0 ) {
+        if ( unitbodysize > 0 ) {
             //TODO:make this more delegate
-            cur_start -= sizeof(unitbytesize);
+            cur_start -= sizeof(unitbodysize);
             readFromBuf(buf, &unitbuf[0], cur_start, sizeofheadandunit); 
         }
         sigunit.deSerialize(unitbuf);
         push(sigunit);
     }
 
+}
+
+template <class T>
+int
+PatternStack<T>::bodySize()
+{
+    int totalsize = 0;
+    typename vector<T>::iterator iter;
+    for ( iter = the_stack.begin() ; 
+            iter != the_stack.end() ;
+            iter++ )
+    {
+        //IdxSigUnit body size and its header
+        totalsize += (iter->bodySize() + sizeof(int32_t));
+    }
+    return totalsize;
 }
 
 #endif

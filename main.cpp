@@ -18,6 +18,7 @@ int main(int argc, char ** argv)
     vector<off_t> off_deltas;
     idxfile::EntryList pb_entrylist;
     IdxSigEntryList sig_entrylist;
+    IdxSigEntry myentry;
 
     IdxSigUnit myunit;
     myunit.init = 2;
@@ -31,11 +32,23 @@ int main(int argc, char ** argv)
     SigStack<IdxSigUnit> stack;
     stack.push(myunit);
     stack.push(myunit);
-    stack.show();
     
     stack.deSerialize( stack.serialize() );
-    stack.show();
 
+    myentry.proc = 8848;
+    myentry.logical_offset = myunit;
+    myentry.length.push(myunit);
+    myentry.length.push(myunit);
+    myentry.physical_offset.push(myunit);
+    myentry.physical_offset.push(myunit);
+    myentry.physical_offset.push(myunit);
+
+    vector<IdxSigEntry> alist;
+    alist.push_back(myentry);
+    printIdxEntries(alist);
+    alist[0].deSerialize(alist[0].serialize());
+    printIdxEntries(alist);
+    
     return 0;
 
 

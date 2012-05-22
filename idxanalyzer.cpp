@@ -7,7 +7,7 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
 {
     vector<IdxSigEntry>::const_iterator iter;
 
-    //cout << "this is printIdxEntries" << endl;
+    ////cout << "this is printIdxEntries" << endl;
 
     for ( iter = idx_entry_list.begin();
             iter != idx_entry_list.end();
@@ -494,7 +494,9 @@ void IdxSigEntryList::readFromFile(char *filename)
 
 void appendToBuffer( string &to, const void *from, const int size )
 {
-    to.append( (char *)from, size );
+    if ( size > 0 ) { //make it safe
+        to.append( (char *)from, size );
+    }
 }
 
 //Note that this function will increase start
@@ -505,7 +507,8 @@ void readFromBuf( string &from, void *to, int &start, const int size )
     start += size;
 }
 
-int32_t IdxSigUnit::bytesize()
+//Serialiezd IdxSigUnit: [head:bodysize][body]
+int32_t IdxSigUnit::bodySize()
 {
     int32_t totalsize;
     totalsize = sizeof(init) //init
@@ -519,41 +522,125 @@ string
 IdxSigUnit::serialize()
 {
     string buf; //let me put it in string and see if it works
-    int32_t seqbytesize;
+    int32_t seqbodysize;
     int32_t totalsize;
 
-    totalsize = bytesize(); 
+    totalsize = bodySize(); 
     
     appendToBuffer(buf, &totalsize, sizeof(totalsize));
     appendToBuffer(buf, &init, sizeof(init));
     appendToBuffer(buf, &cnt, sizeof(cnt));
-    seqbytesize = seq.size()*sizeof(off_t);
-    appendToBuffer(buf, &(seqbytesize), sizeof(int32_t));
-    if (seqbytesize > 0 ) {
-        appendToBuffer(buf, &seq[0], seqbytesize);
+    seqbodysize = seq.size()*sizeof(off_t);
+    appendToBuffer(buf, &(seqbodysize), sizeof(int32_t));
+    if (seqbodysize > 0 ) {
+        appendToBuffer(buf, &seq[0], seqbodysize);
     }
     return buf;
 }
 
-void IdxSigUnit::deSerialize(string buf)
+//This input buf should be [data size of the followed data][data]
+void 
+IdxSigUnit::deSerialize(string buf)
 {
     int32_t totalsize;
     int cur_start = 0;
-    int32_t seqbytesize;
+    int32_t seqbodysize;
 
     readFromBuf(buf, &totalsize, cur_start, sizeof(totalsize));
     readFromBuf(buf, &init, cur_start, sizeof(init));
     readFromBuf(buf, &cnt, cur_start, sizeof(cnt));
-    readFromBuf(buf, &seqbytesize, cur_start, sizeof(int32_t));
-    if ( seqbytesize > 0 ) {
-        seq.resize(seqbytesize/sizeof(off_t));
-        readFromBuf(buf, &seq[0], cur_start, seqbytesize); 
+    readFromBuf(buf, &seqbodysize, cur_start, sizeof(int32_t));
+    if ( seqbodysize > 0 ) {
+        seq.resize(seqbodysize/sizeof(off_t));
+        readFromBuf(buf, &seq[0], cur_start, seqbodysize); 
     }
 }
 
-string
-IdxSigEntry::serialize()
+//byte size is in [bodysize][data]
+//it is the size of data
+int IdxSigEntry::bodySize()
 {
+    int totalsize = 0;
+    totalsize += sizeof(proc);
+    totalsize += sizeof(int32_t) * 3; //the header size of the following 
+    totalsize += logical_offset.bodySize();
+    totalsize += length.bodySize();
+    totalsize += physical_offset.bodySize();
+
+    return totalsize;
+}
+
+string IdxSigEntry::serialize()
+{
+    int32_t totalsize = 0;
+    string buf, tmpbuf;
+    int32_t datasize;
     
+    totalsize = bodySize();
+    //cout << "IdxSigEntry totalsize put in: " << totalsize << endl;
+    appendToBuffer(buf, &totalsize, sizeof(totalsize));
+    appendToBuffer(buf, &proc, sizeof(proc));
+    //cout << "IdxSigEntry proc put in: " << proc << endl; 
+    
+    //this tmpbuf includes [data size][data]
+    tmpbuf = logical_offset.serialize(); 
+    appendToBuffer(buf, &tmpbuf[0], tmpbuf.size());
+    
+    tmpbuf = length.serialize();
+    appendToBuffer(buf, &tmpbuf[0], tmpbuf.size());
+
+    tmpbuf = physical_offset.serialize();
+    appendToBuffer(buf, &tmpbuf[0], tmpbuf.size());
+
+    return buf;
+}
+
+
+
+void IdxSigEntry::deSerialize(string buf)
+{
+    int32_t totalsize = 0; 
+    int cur_start = 0;
+    int32_t datasize = 0;
+    string tmpbuf;
+
+
+    readFromBuf(buf, &totalsize, cur_start, sizeof(totalsize));
+    //cout << "IdxSigEntry totalsize read out: " << totalsize << endl;
+    
+    readFromBuf(buf, &proc, cur_start, sizeof(proc));
+    //cout << "IdxSigEntry proc read out: " << proc << endl; 
+   
+    tmpbuf.clear();
+    readFromBuf(buf, &datasize, cur_start, sizeof(datasize));
+    if ( datasize > 0 ) {
+        int headanddatasize = sizeof(datasize) + datasize;
+        tmpbuf.resize(headanddatasize);
+        cur_start -= sizeof(datasize);
+        readFromBuf(buf, &tmpbuf[0], cur_start, headanddatasize); 
+    }
+    logical_offset.deSerialize(tmpbuf);
+    //cout << "deSerialized logical offset data size: " << datasize << endl;
+    logical_offset.show();
+    
+    tmpbuf.clear();
+    readFromBuf(buf, &datasize, cur_start, sizeof(datasize));
+    if ( datasize > 0 ) {
+        int headanddatasize = sizeof(datasize) + datasize;
+        tmpbuf.resize(headanddatasize);
+        cur_start -= sizeof(datasize);
+        readFromBuf(buf, &tmpbuf[0], cur_start, headanddatasize); 
+    }
+    length.deSerialize(tmpbuf);
+
+    tmpbuf.clear();
+    readFromBuf(buf, &datasize, cur_start, sizeof(datasize));
+    if ( datasize > 0 ) {
+        int headanddatasize = sizeof(datasize) + datasize;
+        tmpbuf.resize(headanddatasize);
+        cur_start -= sizeof(datasize);
+        readFromBuf(buf, &tmpbuf[0], cur_start, headanddatasize); 
+    }
+    physical_offset.deSerialize(tmpbuf);
 }
 
