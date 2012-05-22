@@ -347,6 +347,7 @@ class IdxSigEntryList {
                 idxfile::EntryList &pblist);
         string serialize();
         void deSerialize(string buf);
+        int bodySize();
 };
 
 void printIdxEntries( vector<IdxSigEntry> &idx_entry_list );
