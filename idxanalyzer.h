@@ -18,6 +18,14 @@ template <class T> class SigStack;
 template <class T> class PatternStack;
 class IdxSigEntryList;
 
+
+void appendToBuffer( string &to, const void *from, const int size );
+
+//Note that this function will increase start
+void readFromBuf( string &from, void *to, int &start, const int size );
+
+
+
 //used to describe a single pattern that found
 //This will be saved in the stack
 class PatternUnit {
@@ -338,5 +346,68 @@ class IdxSigEntryList {
 
 void printIdxEntries( vector<IdxSigEntry> &idx_entry_list );
 vector<off_t> buildDeltas( vector<off_t> seq );
+
+template <class T>
+string 
+PatternStack<T>::serialize()
+{
+    int32_t totalsize = 0;
+    string buf;
+
+    typename vector<T>::iterator iter;
+    for ( iter = the_stack.begin() ; 
+            iter != the_stack.end() ;
+            iter++ )
+    {
+        totalsize += iter->bytesize();
+    }
+    cout << "total size put in: " << totalsize << endl;
+    appendToBuffer(buf, &totalsize, sizeof(totalsize));
+    for ( iter = the_stack.begin() ; 
+            iter != the_stack.end() ;
+            iter++ )
+    {
+        string unit = iter->serialize();
+        appendToBuffer(buf, &unit[0], unit.size());
+        //to test if it serilized right
+        IdxSigUnit tmp;
+        tmp.deSerialize(unit);
+        cout << "test show.\n";
+        tmp.show();
+    }
+    return buf;
+}
+
+template <class T>
+void
+PatternStack<T>::deSerialize( string buf )
+{
+    int32_t totalsize;
+    int cur_start = 0;
+    
+    clear(); 
+
+    readFromBuf(buf, &totalsize, cur_start, sizeof(totalsize));
+    cout << "total size read out: " << totalsize << endl;
+    while ( cur_start < totalsize ) {
+        int32_t unitbytesize;
+        string unitbuf;
+        T sigunit;
+
+        readFromBuf(buf, &unitbytesize, cur_start, sizeof(unitbytesize));
+        cout << "Unitbytesize:" << unitbytesize << endl;
+        int sizeofheadandunit = sizeof(unitbytesize) + unitbytesize;
+        unitbuf.resize(sizeofheadandunit);
+        if ( unitbytesize > 0 ) {
+            //TODO:make this more delegate
+            cur_start -= sizeof(unitbytesize);
+            readFromBuf(buf, &unitbuf[0], cur_start, sizeofheadandunit); 
+        }
+        sigunit.deSerialize(unitbuf);
+        push(sigunit);
+    }
+
+}
+
 #endif
 

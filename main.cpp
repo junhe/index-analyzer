@@ -30,6 +30,7 @@ int main(int argc, char ** argv)
     
     SigStack<IdxSigUnit> stack;
     stack.push(myunit);
+    stack.push(myunit);
     stack.show();
     
     stack.deSerialize( stack.serialize() );
