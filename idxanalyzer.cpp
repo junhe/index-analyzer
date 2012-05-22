@@ -644,3 +644,56 @@ void IdxSigEntry::deSerialize(string buf)
     physical_offset.deSerialize(tmpbuf);
 }
 
+string IdxSigEntryList::serialize()
+{
+    int32_t bodysize, realbodysize = 0;
+    string buf;
+    vector<IdxSigEntry>::iterator iter;
+    
+    bodysize = bodySize();
+
+    appendToBuffer(buf, &bodySize, sizeof(bodysize));
+    
+    for ( iter = list.begin() ;
+          iter != list.end() ;
+          iter++ )
+    {
+        string tmpbuf;
+        tmpbuf = iter->serialize();
+        if ( tmpbuf.size() > 0 ) {
+            appendToBuffer(buf, &tmpbuf[0], tmpbuf.size());
+        }
+        realbodysize += tmpbuf.size();
+    }
+    assert(realbodysize == bodysize);
+}
+
+string IdxSigEntryList::deSerialize(string buf)
+{
+    int32_t bodysize;
+    int cur_start = 0;
+
+    list.clear();
+    
+    readFromBuf(buf, &bodysize, cur_start, sizeof(bodysize));
+
+    while ( cur_start < bodysize ) {
+         
+    }
+}
+
+string IdxSigEntryList::bodySize()
+{
+    int bodysize = 0;
+    vector<IdxSigEntry>::iterator iter;
+    
+    for ( iter = list.begin() ;
+          iter != list.end() ;
+          iter++ )
+    {
+        bodysize += iter->bodysize() + sizeof(int32_t);
+    }
+
+    return bodysize;
+}
+
