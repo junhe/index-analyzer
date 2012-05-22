@@ -19,6 +19,45 @@ int main(int argc, char ** argv)
     idxfile::EntryList pb_entrylist;
     IdxSigEntryList sig_entrylist;
 
+    IdxSigUnit myunit;
+    myunit.init = 2;
+    myunit.cnt = 3;
+    myunit.seq.push_back(4);
+    myunit.seq.push_back(5);
+
+    IdxSigUnit myunit2;
+    myunit2.deSerialize( myunit.serialize() );
+    
+    SigStack<IdxSigUnit> stack;
+    stack.push(myunit);
+    stack.show();
+    
+    stack.deSerialize( stack.serialize() );
+    stack.show();
+
+    return 0;
+
+
+
+/*
+    vector<off_t> orig;
+    vector<off_t> deltas;
+    int i,j;
+    for ( i = 0; i < 3; i++ )
+    {
+        orig.push_back(1);
+        orig.push_back(3);
+        orig.push_back(8);
+    }
+    deltas = buildDeltas(orig);
+     
+    cout <<"orig:"<<orig.size()<<" deltas:"<<deltas.size()<<endl;
+    IdxSignature tmp; 
+    SigStack<IdxSigUnit> sigstack = tmp.discoverSigPattern(deltas, orig);
+    sigstack.show();
+    return 0;
+*/
+
 
     idx_file.open(argv[1]);
     if (idx_file.is_open()) {
@@ -39,9 +78,9 @@ int main(int argc, char ** argv)
     sig_entrylist.show();
     //sig_entrylist.siglistToPblist(sig_entrylist.list, pb_entrylist);
     //cout << pb_entrylist.DebugString();
-    sig_entrylist.saveToFile("hahafile");
-    sig_entrylist.readFromFile("hahafile");
-    cout << sig_entrylist.pb_list.DebugString();
+    //sig_entrylist.saveToFile("hahafile");
+    //sig_entrylist.readFromFile("hahafile");
+    //cout << sig_entrylist.pb_list.DebugString();
     return 1;
     fstream output("myfile", ios::out | ios::trunc | ios::binary);
     if ( !pb_entrylist.SerializeToOstream(&output) ) {

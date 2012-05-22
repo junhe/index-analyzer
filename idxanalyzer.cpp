@@ -14,12 +14,12 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
             iter++ )
     {
         cout << "[" << iter->proc << "]" << endl;
-        //cout << "----Logical Offset----" << endl;
+        cout << "----Logical Offset----" << endl;
         iter->logical_offset.show();
         
         vector<IdxSigUnit>::const_iterator iter2;
 
-        //cout << "----Length----" << endl;
+        cout << "----Length----" << endl;
         for (iter2 = iter->length.begin();
                 iter2 != iter->length.end();
                 iter2++ )
@@ -27,14 +27,14 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
             iter2->show(); 
         }
 
-        //cout << "----Physical Offset----" << endl;
+        cout << "----Physical Offset----" << endl;
         for (iter2 = iter->physical_offset.begin();
                 iter2 != iter->physical_offset.end();
                 iter2++ )
         {
             iter2->show(); 
         }
-        //cout << "-------------------------------------" << endl;
+        cout << "-------------------------------------" << endl;
     }
 }
 
@@ -492,5 +492,123 @@ void IdxSigEntryList::readFromFile(char *filename)
     input.close();
 }
 
+void appendToBuffer( string &to, const void *from, const int size )
+{
+    to.append( (char *)from, size );
+}
 
+//Note that this function will increase start
+void readFromBuf( string &from, void *to, int &start, const int size )
+{
+    //'to' has to be treated as plain memory
+    memcpy(to, &from[start], size);
+    start += size;
+}
+
+int32_t IdxSigUnit::bytesize()
+{
+    int32_t totalsize;
+    totalsize = sizeof(init) //init
+                + sizeof(cnt) //cnt
+                + sizeof(int32_t) //length of seq size header
+                + seq.size()*sizeof(off_t);
+    return totalsize;
+}
+
+string 
+IdxSigUnit::serialize()
+{
+    string buf; //let me put it in string and see if it works
+    int32_t seqbytesize;
+    int32_t totalsize;
+
+    totalsize = bytesize(); 
+    
+    appendToBuffer(buf, &totalsize, sizeof(totalsize));
+    appendToBuffer(buf, &init, sizeof(init));
+    appendToBuffer(buf, &cnt, sizeof(cnt));
+    seqbytesize = seq.size()*sizeof(off_t);
+    appendToBuffer(buf, &(seqbytesize), sizeof(int32_t));
+    if (seqbytesize > 0 ) {
+        appendToBuffer(buf, &seq[0], seqbytesize);
+    }
+    return buf;
+}
+
+void IdxSigUnit::deSerialize(string buf)
+{
+    int32_t totalsize;
+    int cur_start = 0;
+    int32_t seqbytesize;
+
+    readFromBuf(buf, &totalsize, cur_start, sizeof(totalsize));
+    readFromBuf(buf, &init, cur_start, sizeof(init));
+    readFromBuf(buf, &cnt, cur_start, sizeof(cnt));
+    readFromBuf(buf, &seqbytesize, cur_start, sizeof(int32_t));
+    if ( seqbytesize > 0 ) {
+        seq.resize(seqbytesize/sizeof(off_t));
+        readFromBuf(buf, &seq[0], cur_start, seqbytesize); 
+    }
+}
+
+string
+IdxSigEntry::serialize()
+{
+    
+}
+
+template <class T>
+string 
+PatternStack<T>::serialize()
+{
+    int32_t totalsize = 0;
+    string buf;
+
+    typename vector<T>::iterator iter;
+    for ( iter = the_stack.begin() ; 
+            iter != the_stack.end() ;
+            iter++ )
+    {
+        totalsize += iter->bytesize();
+    }
+
+    appendToBuffer(buf, &totalsize, sizeof(totalsize));
+    for ( iter = the_stack.begin() ; 
+            iter != the_stack.end() ;
+            iter++ )
+    {
+        string unit = iter->serialize();
+        appendToBuffer(buf, &unit[0], unit.size());
+    }
+    return buf;
+}
+
+template <class T>
+void
+PatternStack<T>::deSerialize( string buf )
+{
+    int32_t totalsize;
+    int cur_start = 0;
+    
+    clear(); 
+
+    readFromBuf(buf, &totalsize, cur_start, sizeof(totalsize));
+    while ( cur_start < totalsize ) {
+        int32_t unitbytesize;
+        string unitbuf;
+        T sigunit;
+
+        readFromBuf(buf, &unitbytesize, cur_start, sizeof(unitbytesize));
+        unitbuf.resize(unitbytesize);
+        if ( unitbytesize > 0 ) {
+            //TODO:make this more delegate
+            cur_start -= sizeof(unitbytesize);
+            int wholesize = unitbytesize + sizeof(unitbytesize);
+            readFromBuf(buf, &unitbuf, cur_start, wholesize); 
+        }
+        sigunit.deSerialize(unitbuf);
+        push(sigunit);
+    }
+
+}
 

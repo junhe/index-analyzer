@@ -23,7 +23,7 @@ class IdxSigEntryList;
 class PatternUnit {
     public:
         vector<off_t> seq;
-        int cnt; //count of repeatition
+        int64_t cnt; //count of repeatition
         
         PatternUnit() {}
         PatternUnit( vector<off_t> sq, int ct )
@@ -73,6 +73,10 @@ class IdxSigUnit: public PatternUnit {
         int memsize() {
             return sizeof(init) + PatternUnit::memsize();
         }
+       
+        int32_t bytesize();
+        string serialize();
+        void deSerialize(string buf);
 };
 
 template <class T> // T can be PatternUnit or IdxSigUnit
@@ -151,7 +155,7 @@ class PatternStack {
         virtual void show()
         {
             typename vector<T>::const_iterator iter;
-            
+             
             for ( iter = the_stack.begin();
                     iter != the_stack.end();
                     iter++ )
@@ -169,7 +173,8 @@ class PatternStack {
                 */
             }
         }
-    
+        string serialize();    
+        void deSerialize( string buf );
     protected:
         vector<T> the_stack;
 };
@@ -311,6 +316,7 @@ class IdxSigEntry {
         IdxSigUnit logical_offset;
         SigStack<IdxSigUnit> length;
         SigStack<IdxSigUnit> physical_offset;
+        string serialize();
 };
 
 
@@ -318,7 +324,7 @@ class IdxSigEntryList {
     public:
         vector<IdxSigEntry> list;
         idxfile::EntryList pb_list;
-
+        
     public:
         void append(IdxSigEntryList other);
         void append(vector<IdxSigEntry> &other);
