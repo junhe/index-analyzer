@@ -678,8 +678,21 @@ string IdxSigEntryList::deSerialize(string buf)
     readFromBuf(buf, &bodysize, cur_start, sizeof(bodysize));
 
     while ( cur_start < bodysize ) {
-         
+        int32_t unitbodysize, sizeofheadandbody;
+        string unitbuf;
+        IdxSigEntry unitentry;
+
+        readFromBuf(buf, &unitbodysize, cur_start, sizeof(unitbodysize));
+        sizeofheadandbody = sizeof(unitbodysize) + unitbodysize; 
+        unitbuf.resize(sizeofheadandbody);
+        if ( unitbodysize > 0 ) {
+            cur_start -= sizeof(unitbodysize);
+            readFromBuf(buf, &unitbuf[0], cur_start, sizeofheadandbody);
+        }
+        unitentry.deSerialize(unitbuf);
+        list.push_back(unitentry); //it is OK to push a empty entry
     }
+    assert(cur_start==bodysize);
 }
 
 string IdxSigEntryList::bodySize()
