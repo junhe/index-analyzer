@@ -386,13 +386,15 @@ template <class T>
 void
 PatternStack<T>::deSerialize( string buf )
 {
-    int32_t bodysize;
+    int32_t bodysize, bufsize;
     int cur_start = 0;
     
     clear(); 
 
     readFromBuf(buf, &bodysize, cur_start, sizeof(bodysize));
-    //cout << "body size read out: " << bodysize << endl;
+    
+    bufsize = buf.size();
+    assert(bufsize == bodysize + sizeof(bodysize));
     while ( cur_start < bodysize ) {
         int32_t unitbodysize;
         string unitbuf;

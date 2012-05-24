@@ -18,6 +18,7 @@ int main(int argc, char ** argv)
     vector<off_t> off_deltas;
     idxfile::EntryList pb_entrylist;
     IdxSigEntryList sig_entrylist;
+    IdxSigEntryList sig_entrylist2;
     IdxSigEntry myentry;
 
     IdxSigUnit myunit;
@@ -45,13 +46,28 @@ int main(int argc, char ** argv)
 
     vector<IdxSigEntry> alist;
     alist.push_back(myentry);
-    printIdxEntries(alist);
-    alist[0].deSerialize(alist[0].serialize());
-    printIdxEntries(alist);
+    alist.push_back(myentry);
+
+    sig_entrylist.append(alist);
+    sig_entrylist.append(alist);
+    myentry.physical_offset.push(myunit);
+    alist.push_back(myentry);
     
+    sig_entrylist.append(alist);
+    sig_entrylist.show();
+
+    string tmpbuf = sig_entrylist.serialize();
+    cout << "just before deSerialize()" << endl;
+    sig_entrylist2.deSerialize(tmpbuf);
+    cout << "just after deSerialize()" << endl;
+    sig_entrylist2.show();
+
+    
+    string tmpbuf2 = sig_entrylist2.serialize();
+    
+    cout << (tmpbuf.compare(tmpbuf2)) ;
+
     return 0;
-
-
 
 /*
     vector<off_t> orig;

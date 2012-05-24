@@ -621,7 +621,6 @@ void IdxSigEntry::deSerialize(string buf)
     }
     logical_offset.deSerialize(tmpbuf);
     //cout << "deSerialized logical offset data size: " << datasize << endl;
-    logical_offset.show();
     
     tmpbuf.clear();
     readFromBuf(buf, &datasize, cur_start, sizeof(datasize));
@@ -652,8 +651,10 @@ string IdxSigEntryList::serialize()
     
     bodysize = bodySize();
 
-    appendToBuffer(buf, &bodySize, sizeof(bodysize));
+    appendToBuffer(buf, &bodysize, sizeof(bodysize));
     
+    //cout << "list body put in: " << bodysize << endl;
+
     for ( iter = list.begin() ;
           iter != list.end() ;
           iter++ )
@@ -666,18 +667,23 @@ string IdxSigEntryList::serialize()
         realbodysize += tmpbuf.size();
     }
     assert(realbodysize == bodysize);
+    //cout << realbodysize << "==" << bodysize << endl;
+
+    return buf;
 }
 
-string IdxSigEntryList::deSerialize(string buf)
+void IdxSigEntryList::deSerialize(string buf)
 {
-    int32_t bodysize;
+    int32_t bodysize, bufsize;
     int cur_start = 0;
 
     list.clear();
     
     readFromBuf(buf, &bodysize, cur_start, sizeof(bodysize));
-
-    while ( cur_start < bodysize ) {
+   
+    bufsize = buf.size();
+    assert(bufsize == bodysize + sizeof(bodysize));
+    while ( cur_start < bufsize ) {
         int32_t unitbodysize, sizeofheadandbody;
         string unitbuf;
         IdxSigEntry unitentry;
@@ -692,10 +698,10 @@ string IdxSigEntryList::deSerialize(string buf)
         unitentry.deSerialize(unitbuf);
         list.push_back(unitentry); //it is OK to push a empty entry
     }
-    assert(cur_start==bodysize);
+    assert(cur_start==bufsize);
 }
 
-string IdxSigEntryList::bodySize()
+int IdxSigEntryList::bodySize()
 {
     int bodysize = 0;
     vector<IdxSigEntry>::iterator iter;
@@ -704,7 +710,7 @@ string IdxSigEntryList::bodySize()
           iter != list.end() ;
           iter++ )
     {
-        bodysize += iter->bodysize() + sizeof(int32_t);
+        bodysize += iter->bodySize() + sizeof(int32_t);
     }
 
     return bodysize;
