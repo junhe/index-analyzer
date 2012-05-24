@@ -466,9 +466,15 @@ void IdxSigEntryList::siglistToPblist(vector<IdxSigEntry> &slist,
     }
 }
 
-void IdxSigEntryList::saveToFile(char *filename)
+void IdxSigEntryList::siglistToPblist()
 {
     siglistToPblist(list, pb_list);
+}
+
+
+void IdxSigEntryList::saveToFile(const char *filename)
+{
+    siglistToPblist();
     fstream output(filename, ios::out | ios::trunc | ios::binary);
     if ( !pb_list.SerializeToOstream(&output) ) {
         cerr<<"failed to write to myfile."<<endl;
@@ -476,6 +482,14 @@ void IdxSigEntryList::saveToFile(char *filename)
         cout<<"Write to myfile: OK"<<endl;
     }
     output.close();
+}
+
+void IdxSigEntryList::saveToFile(const int fd)
+{
+    string buf = serialize();
+    if ( buf.size() > 0 ) {
+        Util::Writen(fd, &buf[0], buf.size());
+    }
 }
 
 void IdxSigEntryList::readFromFile(char *filename)
@@ -488,6 +502,13 @@ void IdxSigEntryList::readFromFile(char *filename)
     }
     input.close();
 }
+
+void IdxSigEntryList::clear()
+{
+    list.clear();
+    pb_list.Clear();
+}
+
 
 void appendToBuffer( string &to, const void *from, const int size )
 {
@@ -505,12 +526,12 @@ void readFromBuf( string &from, void *to, int &start, const int size )
 }
 
 //Serialiezd IdxSigUnit: [head:bodysize][body]
-int32_t IdxSigUnit::bodySize()
+header_t IdxSigUnit::bodySize()
 {
-    int32_t totalsize;
+    header_t totalsize;
     totalsize = sizeof(init) //init
                 + sizeof(cnt) //cnt
-                + sizeof(int32_t) //length of seq size header
+                + sizeof(header_t) //length of seq size header
                 + seq.size()*sizeof(off_t);
     return totalsize;
 }
@@ -519,8 +540,8 @@ string
 IdxSigUnit::serialize()
 {
     string buf; //let me put it in string and see if it works
-    int32_t seqbodysize;
-    int32_t totalsize;
+    header_t seqbodysize;
+    header_t totalsize;
 
     totalsize = bodySize(); 
     
@@ -528,7 +549,7 @@ IdxSigUnit::serialize()
     appendToBuffer(buf, &init, sizeof(init));
     appendToBuffer(buf, &cnt, sizeof(cnt));
     seqbodysize = seq.size()*sizeof(off_t);
-    appendToBuffer(buf, &(seqbodysize), sizeof(int32_t));
+    appendToBuffer(buf, &(seqbodysize), sizeof(header_t));
     if (seqbodysize > 0 ) {
         appendToBuffer(buf, &seq[0], seqbodysize);
     }
@@ -539,14 +560,14 @@ IdxSigUnit::serialize()
 void 
 IdxSigUnit::deSerialize(string buf)
 {
-    int32_t totalsize;
+    header_t totalsize;
     int cur_start = 0;
-    int32_t seqbodysize;
+    header_t seqbodysize;
 
     readFromBuf(buf, &totalsize, cur_start, sizeof(totalsize));
     readFromBuf(buf, &init, cur_start, sizeof(init));
     readFromBuf(buf, &cnt, cur_start, sizeof(cnt));
-    readFromBuf(buf, &seqbodysize, cur_start, sizeof(int32_t));
+    readFromBuf(buf, &seqbodysize, cur_start, sizeof(header_t));
     if ( seqbodysize > 0 ) {
         seq.resize(seqbodysize/sizeof(off_t));
         readFromBuf(buf, &seq[0], cur_start, seqbodysize); 
@@ -558,8 +579,8 @@ IdxSigUnit::deSerialize(string buf)
 int IdxSigEntry::bodySize()
 {
     int totalsize = 0;
-    totalsize += sizeof(proc);
-    totalsize += sizeof(int32_t) * 3; //the header size of the following 
+    totalsize += sizeof(original_chunk);
+    totalsize += sizeof(header_t) * 3; //the header size of the following 
     totalsize += logical_offset.bodySize();
     totalsize += length.bodySize();
     totalsize += physical_offset.bodySize();
@@ -569,15 +590,15 @@ int IdxSigEntry::bodySize()
 
 string IdxSigEntry::serialize()
 {
-    int32_t totalsize = 0;
+    header_t totalsize = 0;
     string buf, tmpbuf;
-    int32_t datasize;
+    header_t datasize;
     
     totalsize = bodySize();
     //cout << "IdxSigEntry totalsize put in: " << totalsize << endl;
     appendToBuffer(buf, &totalsize, sizeof(totalsize));
-    appendToBuffer(buf, &proc, sizeof(proc));
-    //cout << "IdxSigEntry proc put in: " << proc << endl; 
+    appendToBuffer(buf, &original_chunk, sizeof(original_chunk));
+    //cout << "IdxSigEntry original_chunk put in: " << original_chunk << endl; 
     
     //this tmpbuf includes [data size][data]
     tmpbuf = logical_offset.serialize(); 
@@ -596,17 +617,17 @@ string IdxSigEntry::serialize()
 
 void IdxSigEntry::deSerialize(string buf)
 {
-    int32_t totalsize = 0; 
+    header_t totalsize = 0; 
     int cur_start = 0;
-    int32_t datasize = 0;
+    header_t datasize = 0;
     string tmpbuf;
 
 
     readFromBuf(buf, &totalsize, cur_start, sizeof(totalsize));
     //cout << "IdxSigEntry totalsize read out: " << totalsize << endl;
     
-    readFromBuf(buf, &proc, cur_start, sizeof(proc));
-    //cout << "IdxSigEntry proc read out: " << proc << endl; 
+    readFromBuf(buf, &original_chunk, cur_start, sizeof(original_chunk));
+    //cout << "IdxSigEntry id read out: " << id << endl; 
    
     tmpbuf.clear();
     readFromBuf(buf, &datasize, cur_start, sizeof(datasize));
@@ -642,7 +663,7 @@ void IdxSigEntry::deSerialize(string buf)
 
 string IdxSigEntryList::serialize()
 {
-    int32_t bodysize, realbodysize = 0;
+    header_t bodysize, realbodysize = 0;
     string buf;
     vector<IdxSigEntry>::iterator iter;
     
@@ -671,7 +692,7 @@ string IdxSigEntryList::serialize()
 
 void IdxSigEntryList::deSerialize(string buf)
 {
-    int32_t bodysize, bufsize;
+    header_t bodysize, bufsize;
     int cur_start = 0;
 
     list.clear();
@@ -681,7 +702,7 @@ void IdxSigEntryList::deSerialize(string buf)
     bufsize = buf.size();
     assert(bufsize == bodysize + sizeof(bodysize));
     while ( cur_start < bufsize ) {
-        int32_t unitbodysize, sizeofheadandbody;
+        header_t unitbodysize, sizeofheadandbody;
         string unitbuf;
         IdxSigEntry unitentry;
 
@@ -707,9 +728,150 @@ int IdxSigEntryList::bodySize()
           iter != list.end() ;
           iter++ )
     {
-        bodysize += iter->bodySize() + sizeof(int32_t);
+        bodysize += iter->bodySize() + sizeof(header_t);
     }
 
     return bodysize;
 }
+
+//return number of elements in total
+int PatternUnit::size() const 
+{
+    if ( cnt == 0 ) {
+        return 1; //not repetition
+    } else {
+        return seq.size()*cnt;
+    }
+}
+
+void PatternUnit::show() const
+{
+    vector<off_t>::const_iterator iter;
+    cout << "( " ;
+    for (iter = seq.begin();
+            iter != seq.end();
+            iter++ )
+    {
+        cout << *iter << " ";
+    }
+    cout << ") ^" << cnt << endl;
+
+}
+
+void IdxSigUnit::show() const
+{
+    cout << init << " ... ";
+    PatternUnit::show();
+}
+
+off_t sumVector( vector<off_t> seq )
+{
+    vector<off_t>::const_iterator iiter;
+    
+    off_t sum = 0;
+    for ( iiter = iter->seq.begin() ;
+          iiter != iter->seq.end() ;
+          iiter++ )
+    {
+        sum += *iiter;
+    }
+    
+    return sum;
+}
+
+off_t IdxSigEntry::getLengthByPos( int pos ) const
+{
+    int cur_pos = 0; //it should always point to sigunit.init
+
+    vector<IdxSigUnit>::const_iterator iter;
+    vector<off_t>::const_iterator iiter;
+
+
+    for ( iter = length.begin() ;
+          iter != length.end() ;
+          iter++ )
+    {
+        int range_start, range_end;
+        int numoflen = iter->seq.size()*iter->cnt;
+        
+        if ( cur_pos <= pos && pos < cur_pos + numoflen ) {
+            //in the range that pointed to by iter
+            int rpos = pos - cur_pos;
+            off_t delta_sum = sumVector(iter->seq);
+            int remain = rpos % iter->seq.size();
+            int factor = rpos / iter->seq.size();
+
+        } else {
+            //not in the range of iter
+            cur_pos += numoflen; //keep track of current pos
+        }
+
+    }
+}
+
+bool IdxSigEntry::contain( off_t offset ) const
+{
+    vector<IdxSigUnit>::const_iterator iter;
+    vector<off_t>::const_iterator iiter;
+    vector<off_t>::const_iterator off_delta_iter;
+    off_t &logical = offset;
+
+    off_t off_init = logical_offset.init;
+    off_t delta_sum = 0;
+    for ( off_delta_iter = logical_offset.seq.begin();
+          off_delta_iter != logical_offset.seq.end();
+          off_delta_iter++ )
+    {
+        delta_sum += *off_delta_iter;
+    }
+    ostringstream oss;
+    oss << delta_sum;
+    mlog(IDX_WARN, "delta_sum:%s", oss.str().c_str());
+    
+    off_t logical_remain = (logical - off_init) % delta_sum;
+    assert( logical_remain >= 0 );
+    int factor = (logical - off_init - logical_remain) / delta_sum;
+
+    if ( factor >= logical_offset.cnt ) {
+        // logical is very large.
+        // check the last offset
+        //
+        // note that there are totally cnt*seq.size() offsets
+        // in this class
+        // they are:
+        // [init][init+d0][init+d0+d1]...[init+(d0+d1+..+dp)*cnt-dp]
+        // [init+(d0+d1+..+dp)*cnt] is the 'last+1' offset
+    } else {
+        off_t sum = 0;
+        for ( off_delta_iter = logical_offset.seq.begin();
+              off_delta_iter != logical_offset.seq.end()
+              && sum < logical_remain;
+              off_delta_iter++ )
+        {
+            sum += *off_delta_iter;
+        }
+        assert(off_delta_iter != logical_offset.seq.end());
+
+        int pos = off_delta_iter - logical_offset.seq.begin();
+        int pre = pos - 1; //should check the one before pos
+        // should check logical_offset.seq.size()*factor+pre+1: this
+        // is the position of pre if offsets are expanded.
+        // Assume the rank for the offset is like:
+        // init:0, init+d0:1
+    }
+
+    for ( iter = length.begin() ;
+          iter != length.end() ;
+          iter++ )
+    {
+        for ( iiter = iter->seq.begin() ;
+              iiter != iter->seq.end() ;
+              iiter++ )
+        {
+            // iiter iterates through all deltas of length 
+        }
+    }
+    return false;
+}
+
 
