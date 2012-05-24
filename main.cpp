@@ -62,11 +62,10 @@ vector<HostEntry> bufferEntries(ifstream &idx_file, int &numofproc)
     HostEntry h_entry;
     HostEntry &idx_entry = h_entry;
     vector<HostEntry> entry_buf;
-    int bufsize = 4194305 ;
     int i;
 
     numofproc = 0;
-    for ( i = 0 ; i < bufsize && idx_file.good(); i++ ) {
+    for ( i = 0 ; idx_file.good(); i++ ) {
         string line;
         if (  !idx_file.good()
               || !getline(idx_file, line).good() 
