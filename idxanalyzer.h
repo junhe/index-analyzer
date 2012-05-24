@@ -8,16 +8,15 @@
 #include <assert.h>
 #include <unistd.h>
 #include <stdio.h>
-#include "protobuf/index.pb.h"
 
 using namespace std;
-
-#define off_t long long int
 
 template <class T> class SigStack;
 template <class T> class PatternStack;
 class IdxSigEntryList;
+class HostEntry;
 
+typedef int32_t header_t; //the type to hold the body size in serialization
 
 void appendToBuffer( string &to, const void *from, const int size );
 
@@ -37,33 +36,9 @@ class PatternUnit {
         PatternUnit( vector<off_t> sq, int ct )
             :seq(sq),cnt(ct)
         {}
-        //return number of elements in total
-        int size() const 
-        {
-            if ( cnt == 0 ) {
-                return 1; //not repetition
-            } else {
-                return seq.size()*cnt;
-            }
-        }
         
-        int memsize() 
-        {
-            return sizeof(cnt) + sizeof(off_t)*seq.size();
-        }
-
-        virtual void show() const
-        {
-            vector<off_t>::const_iterator iter;
-            cout << "( " ;
-            for (iter = seq.begin();
-                    iter != seq.end();
-                    iter++ )
-            {
-                cout << *iter << " ";
-            }
-            cout << ") ^" << cnt << endl;
-        }
+        int size() const;
+        virtual void show() const;
 };
 
 //This is used to describ a single repeating
@@ -72,17 +47,9 @@ class IdxSigUnit: public PatternUnit {
     public:
         off_t init; // the initial value of 
                     // logical offset, length, or physical offset
-        void show() const
-        {
-            cout << init << " ... ";
-            PatternUnit::show();
-        }
+        void show() const;
 
-        int memsize() {
-            return sizeof(init) + PatternUnit::memsize();
-        }
-       
-        int32_t bodySize();
+        header_t bodySize();
         string serialize();
         void deSerialize(string buf);
 };
@@ -91,96 +58,18 @@ template <class T> // T can be PatternUnit or IdxSigUnit
 class PatternStack {
     public:
         PatternStack() {}
-        void push( T pu ) 
-        {
-            the_stack.push_back(pu);
-        }
-        
-        void clear() 
-        {
-            the_stack.clear();
-        }
-
-        //if popping out t elem breaks any patterns
-        bool isPopSafe( int t ) 
-        {
-            typename vector<T>::reverse_iterator rit;
-            
-            int total = 0;
-            rit = the_stack.rbegin();
-            while ( rit != the_stack.rend()
-                    && total < t )
-            {
-                total += rit->size();
-                rit++;
-            }
-            return total == t;
-        }
-
-        //return false if it is not safe
-        //t is number of elements, not pattern unit
-        bool popElem ( int t )
-        {
-            if ( !isPopSafe(t) ) {
-                return false;
-            }
-
-            int total = 0; // the number of elem already popped out
-            while ( !the_stack.empty() && total < t ) {
-                total += top().size();
-                the_stack.pop_back();
-            }
-            assert( total == t );
-
-            return true;
-        }
-
+        void push( T pu ); 
+        void clear() ;
+        bool isPopSafe( int t ); 
+        bool popElem ( int t );
         //pop out one pattern
-        void popPattern () 
-        {
-            the_stack.pop_back();
-        }
+        void popPattern ();
         
         //make sure the stack is not empty before using this
-        T top () 
-        {
-            assert( the_stack.size() > 0 );
-            return the_stack.back();
-        }
-
-        typename vector<T>::const_iterator
-            begin() const
-        {
-            return the_stack.begin();
-        }
-        
-        typename vector<T>::const_iterator
-            end() const
-        {
-            return the_stack.end();
-        }
-        
-        virtual void show()
-        {
-            typename vector<T>::const_iterator iter;
-             
-            for ( iter = the_stack.begin();
-                    iter != the_stack.end();
-                    iter++ )
-            {
-                iter->show();
-                /*
-                vector<off_t>::const_iterator off_iter;
-                for ( off_iter = (iter->seq).begin();
-                        off_iter != (iter->seq).end();
-                        off_iter++ )
-                {
-                    cout << *off_iter << ", ";
-                }
-                cout << "^" << iter->cnt << endl;
-                */
-            }
-        }
+        T top ();
+        typename vector<T>::const_iterator begin() const;
+        typename vector<T>::const_iterator end() const;
+        virtual void show();
         int bodySize();
         string serialize();    
         void deSerialize( string buf );
@@ -212,19 +101,6 @@ class SigStack: public PatternStack <T>
                 }
                 cout << "^" << iter->cnt << endl;
             }
-        }
-
-        int memsize() 
-        {
-            typename vector<T>::const_iterator iter;
-            int totalsize = 0;
-            for ( iter = PatternStack<T>::the_stack.begin();
-                    iter != PatternStack<T>::the_stack.end();
-                    iter++)
-            {
-                totalsize += ((T)(*iter)).memsize();
-            }
-            return totalsize;
         }
 
 };
@@ -273,7 +149,8 @@ class Tuple {
         }
 };
 
-
+/* Not longer in use
+ *
 class IdxEntry {
     public:
         int Proc;
@@ -288,6 +165,45 @@ class IdxEntry {
         int ID_2;
         off_t Physical_offset;
 };
+*/
+
+// this is the class that represents the records that get written into the
+// index file for each host.
+// TODO:
+// Move this class somewhere proper. It is impelmented in Index.cpp
+class HostEntry
+{
+    public:
+        HostEntry();
+        HostEntry( off_t o, size_t s, pid_t p );
+        HostEntry( const HostEntry& copy );
+        bool overlap( const HostEntry& );
+        bool contains ( off_t ) const;
+        bool splittable ( off_t ) const;
+        bool abut   ( const HostEntry& );
+        off_t logical_tail( ) const;
+        bool follows(const HostEntry&);
+        bool preceeds(const HostEntry&);
+
+    protected:
+        off_t  logical_offset;
+        off_t  physical_offset;  // I tried so hard to not put this in here
+        // to save some bytes in the index entries
+        // on disk.  But truncate breaks it all.
+        // we assume that each write makes one entry
+        // in the data file and one entry in the index
+        // file.  But when we remove entries and
+        // rewrite the index, then we break this
+        // assumption.  blech.
+        size_t length;
+        double begin_timestamp;
+        double end_timestamp;
+        pid_t  id;      // needs to be last so no padding
+
+        friend class Index;
+        friend class IdxSignature;
+};
+
 
 
 // Each index has its own signature
@@ -299,9 +215,8 @@ class IdxSignature {
                 vector<off_t> const &orig );
         //It takes in a entry buffer like in PLFS,
         //analyzes it and generate Index Signature Entries
-        IdxSigEntryList generateIdxSignature(vector<IdxEntry> &entry_buf, int proc);
+        IdxSigEntryList generateIdxSignature(vector<HostEntry> &entry_buf, int proc);
     private:
-        vector<IdxEntry> entry_buf;
         int win_size; //window size
         Tuple searchNeighbor( vector<off_t> const &seq,
                 vector<off_t>::const_iterator p_lookahead_win ); 
@@ -314,20 +229,19 @@ class IdxSignature {
 //Damn, where can I put the time stamp :(
 class IdxSigEntry {
     public:
-        int memsize() 
-        {
-            return sizeof(proc) + logical_offset.memsize() 
-                + length.memsize() + physical_offset.memsize();
-        }
-
-    public:
-        int proc;
+        pid_t original_chunk;  //used only when entry is in global
+                               //complex index. 
+        pid_t new_chunk_id;    //This is not serialized yet.
+                               //it should only be serialized in
+                               //the context of global complex index
         IdxSigUnit logical_offset;
         SigStack<IdxSigUnit> length;
         SigStack<IdxSigUnit> physical_offset;
         string serialize();
         void deSerialize(string buf);
         int bodySize();
+        bool contain( off_t offset ) const; 
+        off_t getLengthByPos( int pos ) const;
 };
 
 
@@ -335,16 +249,18 @@ class IdxSigEntryList {
     public:
         vector<IdxSigEntry> list;
         idxfile::EntryList pb_list;
-        
+
     public:
         void append(IdxSigEntryList other);
         void append(vector<IdxSigEntry> &other);
         void show();
-        //TODO:
-        void saveToFile(char *filename);
+        void saveToFile(const char *filename);
+        void saveToFile(const int fd);
         void readFromFile(char *filename);
         void siglistToPblist(vector<IdxSigEntry> &slist,
                 idxfile::EntryList &pblist);
+        void siglistToPblist();
+        void clear();
         string serialize();
         void deSerialize(string buf);
         int bodySize();
@@ -357,10 +273,10 @@ template <class T>
 string 
 PatternStack<T>::serialize()
 {
-    int32_t bodysize = 0;
+    header_t bodysize = 0;
     string buf;
     typename vector<T>::iterator iter;
-    int32_t realtotalsize = 0;
+    header_t realtotalsize = 0;
 
     bodysize = bodySize();
     //cout << "data size put in: " << bodysize << endl;
@@ -386,7 +302,7 @@ template <class T>
 void
 PatternStack<T>::deSerialize( string buf )
 {
-    int32_t bodysize, bufsize;
+    header_t bodysize, bufsize;
     int cur_start = 0;
     
     clear(); 
@@ -396,7 +312,7 @@ PatternStack<T>::deSerialize( string buf )
     bufsize = buf.size();
     assert(bufsize == bodysize + sizeof(bodysize));
     while ( cur_start < bodysize ) {
-        int32_t unitbodysize;
+        header_t unitbodysize;
         string unitbuf;
         T sigunit;
 
@@ -426,10 +342,110 @@ PatternStack<T>::bodySize()
             iter++ )
     {
         //IdxSigUnit body size and its header
-        totalsize += (iter->bodySize() + sizeof(int32_t));
+        totalsize += (iter->bodySize() + sizeof(header_t));
     }
     return totalsize;
 }
 
+template <class T>
+void PatternStack<T>::push( T pu ) 
+{
+    the_stack.push_back(pu);
+}
+
+template <class T>
+void PatternStack<T>::clear() 
+{
+    the_stack.clear();
+}
+
+//if popping out t elem breaks any patterns
+template <class T>
+bool PatternStack<T>::isPopSafe( int t ) 
+{
+    typename vector<T>::reverse_iterator rit;
+    
+    int total = 0;
+    rit = the_stack.rbegin();
+    while ( rit != the_stack.rend()
+            && total < t )
+    {
+        total += rit->size();
+        rit++;
+    }
+    return total == t;
+}
+
+//return false if it is not safe
+//t is number of elements, not pattern unit
+template <class T>
+bool PatternStack<T>::popElem ( int t )
+{
+    if ( !isPopSafe(t) ) {
+        return false;
+    }
+
+    int total = 0; // the number of elem already popped out
+    while ( !the_stack.empty() && total < t ) {
+        total += top().size();
+        the_stack.pop_back();
+    }
+    assert( total == t );
+
+    return true;
+}
+
+//pop out one pattern
+template <class T>
+void PatternStack<T>::popPattern () 
+{
+    the_stack.pop_back();
+}
+
+//make sure the stack is not empty before using this
+template <class T>
+T PatternStack<T>::top () 
+{
+    assert( the_stack.size() > 0 );
+    return the_stack.back();
+}
+
+template <class T>
+typename vector<T>::const_iterator
+PatternStack<T>::begin() const
+{
+    return the_stack.begin();
+}
+
+template <class T>
+typename vector<T>::const_iterator
+PatternStack<T>::end() const
+{
+    return the_stack.end();
+}
+
+template <class T>
+void 
+PatternStack<T>::show()
+{
+    typename vector<T>::const_iterator iter;
+    
+    for ( iter = the_stack.begin();
+            iter != the_stack.end();
+            iter++ )
+    {
+        iter->show();
+        /*
+        vector<off_t>::const_iterator off_iter;
+        for ( off_iter = (iter->seq).begin();
+                off_iter != (iter->seq).end();
+                off_iter++ )
+        {
+            cout << *off_iter << ", ";
+        }
+        cout << "^" << iter->cnt << endl;
+        */
+    }
+}
 #endif
 
