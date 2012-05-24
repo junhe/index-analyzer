@@ -58,30 +58,30 @@ vector<off_t> buildDeltas( vector<off_t> seq )
 //
 //It gets signatures for a proc. 
 //TODO:
-//But do we really need to separate entries by proc at first?
+//But do we really need to separate entries by original_chunk at first?
 //Also, have to handle the case that there is only one entry
-IdxSigEntryList IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf, 
-                                        int proc) 
+IdxSigEntryList IdxSignature::generateIdxSignature(
+        vector<HostEntry> &entry_buf, 
+        int proc) 
 {
     vector<off_t> logical_offset, length, physical_offset; 
     vector<off_t> logical_offset_delta, 
                     length_delta, 
                     physical_offset_delta;
     IdxSigEntryList entrylist;
-    static int totalsize = 0;
-    vector<IdxEntry>::const_iterator iter;
-    //cout<< "i am in generateIdxSignature" << endl << "entry_buf.size()=" << entry_buf.size() << endl;
+    vector<HostEntry>::const_iterator iter;
+    
     for ( iter = entry_buf.begin() ; 
             iter != entry_buf.end() ;
             iter++ )
     {
-        if ( iter->Proc != proc ) {
+        if ( iter->id != proc ) {
             continue;
         }
 
-        logical_offset.push_back(iter->Logical_offset);
-        length.push_back(iter->Length);
-        physical_offset.push_back(iter->Physical_offset);
+        logical_offset.push_back(iter->logical_offset);
+        length.push_back(iter->length);
+        physical_offset.push_back(iter->physical_offset);
     }
     
     logical_offset_delta = buildDeltas(logical_offset);
@@ -127,20 +127,17 @@ IdxSigEntryList IdxSignature::generateIdxSignature(vector<IdxEntry> &entry_buf,
                     vector<off_t> (physical_offset.begin()+range_start,
                         physical_offset.begin()+range_end) );
 
-        idx_entry.proc = proc;
+        idx_entry.original_chunk = proc;
         idx_entry.logical_offset = *stack_iter;
         idx_entry.length = length_stack;
         idx_entry.physical_offset = physical_offset_stack;
         
         idx_entry_list.push_back( idx_entry);
-        totalsize += idx_entry.memsize();
 
         range_start = range_end;
     }
     entrylist.append(idx_entry_list);
     //printIdxEntries(idx_entry_list);
-    fprintf(stderr, "so far(proc:%d), total size is: %d Bytes (%d KB).\n", 
-            proc, totalsize, totalsize/1024);
     return entrylist;
 }
 
@@ -444,7 +441,7 @@ void IdxSigEntryList::siglistToPblist(vector<IdxSigEntry> &slist,
             iter++)
     {
         idxfile::Entry *fentry = pblist.add_entry();
-        fentry->set_proc( (*iter).proc );
+        fentry->set_proc( (*iter).original_chunk );
         idxfile::SigUnit *su = fentry->mutable_logical_offset();
         idxSigUnit2PBSigUnit( (*iter).logical_offset, su );
 
