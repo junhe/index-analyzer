@@ -1,11 +1,12 @@
 SHELL=/bin/sh
 
 OBJS=idxanalyzer.o main.o 
-CXXFLAGS=-Wall 
+CXXFLAGS=-D_FILE_OFFSET_BITS=64 
 CXX=g++
 INCLUDES=
 LIBS=-lm -lrt 
-LDFLAGS=-D_FILE_OFFSET_BITS=64  
+#LDFLAGS=
+LDFLAGS=
 xmain:${OBJS}
 	${CXX} ${CXXFLAGS} ${LDFLAGS} ${INCLUDES} -o $@ ${OBJS} ${LIBS}
 

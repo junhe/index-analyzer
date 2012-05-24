@@ -7,10 +7,9 @@
 
 using namespace std;
 
-#define off_t long long int
 
 
-vector<HostEntry> bufferEntries(ifstream &idx_file);
+vector<HostEntry> bufferEntries(ifstream &idx_file, int &maxproc);
 
 int main(int argc, char ** argv)
 {
@@ -21,7 +20,7 @@ int main(int argc, char ** argv)
     IdxSigEntryList sig_entrylist2;
     IdxSigEntry myentry;
 
-    
+
     idx_file.open(argv[1]);
     if (idx_file.is_open()) {
         cout << "map file is open: " << argv[1]  << endl;
@@ -30,12 +29,11 @@ int main(int argc, char ** argv)
         exit(-1);
     }
 
-    entry_buf = bufferEntries(idx_file);
-    cout << "after bufferEntries" << endl;
-    cout << "size is: " << entry_buf.size() << endl;;
+    int maxproc;
+    entry_buf = bufferEntries(idx_file, maxproc);
     
     int proc;
-    for ( proc = 0 ; proc < 64 ; proc++ ) {
+    for ( proc = 0 ; proc <= maxproc ; proc++ ) {
         sig_entrylist.append(mysig.generateIdxSignature(entry_buf, proc));
     }
     
@@ -45,7 +43,20 @@ int main(int argc, char ** argv)
     return 0;
 }
 
-vector<HostEntry> bufferEntries(ifstream &idx_file)
+
+void deleteSubStr( string del, string &line ) 
+{
+    size_t found;
+    
+    found = line.find(del);
+    while (found != string::npos) 
+    {
+        line.erase(found, del.size());  
+        found = line.find(del);
+    }
+}
+
+vector<HostEntry> bufferEntries(ifstream &idx_file, int &numofproc)
 {
     //cout << "i am bufferEntries()" << endl;
     HostEntry h_entry;
@@ -54,13 +65,25 @@ vector<HostEntry> bufferEntries(ifstream &idx_file)
     int bufsize = 4194305 ;
     int i;
 
-
-    //cout << "before for" << endl;
+    numofproc = 0;
     for ( i = 0 ; i < bufsize && idx_file.good(); i++ ) {
         string line;
-        if ( !getline(idx_file, line).good() || line.size() < 8 ) {
+        if (  !idx_file.good()
+              || !getline(idx_file, line).good() 
+              || line.size() < 1)
+        {
             break;
         }
+
+        if ( line[0] == '#' ) {
+            cout << "skiping---" << line << endl;
+            continue;
+        }
+        
+        deleteSubStr( "[", line );
+        deleteSubStr( "]", line );
+        deleteSubStr( ". ", line );
+        //cout << line << endl;
 
         vector<string> tokens;
         vector<string>::iterator iter;
@@ -70,9 +93,34 @@ vector<HostEntry> bufferEntries(ifstream &idx_file)
                 back_inserter<vector<string> >(tokens));
 
         idx_entry.id = atoi( tokens[0].c_str() );
-        //idx_entry.ID = (tokens[1] == string("w")) ? ID_WRITE:ID_READ;
-        sscanf( tokens[2].c_str(), "%lld", &idx_entry.logical_offset);
-        sscanf( tokens[3].c_str(), "%lld", &idx_entry.length);
+        if ( idx_entry.id > numofproc ) {
+            numofproc = idx_entry.id;
+        }
+
+
+        stringstream convert(tokens[2]);
+        if ( !(convert >> idx_entry.logical_offset) ) {
+            cout << "error on converting" << endl;
+            exit(-1);
+        }
+
+        convert.clear();
+        convert.str(tokens[3]);
+        if ( !(convert >> idx_entry.length) ) {
+            cout << "error on converting" << endl;
+            exit(-1);
+        }
+
+        convert.clear();
+        convert.str(tokens[8]);
+        if ( !(convert >> idx_entry.physical_offset) ) {
+            cout << "error on converting" << endl;
+            exit(-1);
+        }
+
+
+        //sscanf( tokens[2].c_str(), "%lld", &idx_entry.logical_offset);
+        //sscanf( tokens[3].c_str(), "%lld", &idx_entry.length);
         //idx_entry.begin_timestamp = atof( tokens[4].c_str() );
         //idx_entry.end_timestamp = atof( tokens[5].c_str() );
         //sscanf( tokens[6].c_str(), "%lld", &(idx_entry.logical_tail));
