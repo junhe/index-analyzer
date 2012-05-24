@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdint.h>
 
 using namespace std;
 
@@ -174,18 +175,6 @@ class IdxEntry {
 class HostEntry
 {
     public:
-        HostEntry();
-        HostEntry( off_t o, size_t s, pid_t p );
-        HostEntry( const HostEntry& copy );
-        bool overlap( const HostEntry& );
-        bool contains ( off_t ) const;
-        bool splittable ( off_t ) const;
-        bool abut   ( const HostEntry& );
-        off_t logical_tail( ) const;
-        bool follows(const HostEntry&);
-        bool preceeds(const HostEntry&);
-
-    protected:
         off_t  logical_offset;
         off_t  physical_offset;  // I tried so hard to not put this in here
         // to save some bytes in the index entries
@@ -200,7 +189,6 @@ class HostEntry
         double end_timestamp;
         pid_t  id;      // needs to be last so no padding
 
-        friend class Index;
         friend class IdxSignature;
 };
 
@@ -210,7 +198,6 @@ class HostEntry
 class IdxSignature {
     public:
         IdxSignature():win_size(6) {} 
-        void discoverPattern( vector<off_t> const &seq );
         SigStack<IdxSigUnit> discoverSigPattern( vector<off_t> const &seq,
                 vector<off_t> const &orig );
         //It takes in a entry buffer like in PLFS,
@@ -240,26 +227,17 @@ class IdxSigEntry {
         string serialize();
         void deSerialize(string buf);
         int bodySize();
-        bool contain( off_t offset ) const; 
-        off_t getLengthByPos( int pos ) const;
 };
 
 
 class IdxSigEntryList {
     public:
         vector<IdxSigEntry> list;
-        idxfile::EntryList pb_list;
 
     public:
         void append(IdxSigEntryList other);
         void append(vector<IdxSigEntry> &other);
         void show();
-        void saveToFile(const char *filename);
-        void saveToFile(const int fd);
-        void readFromFile(char *filename);
-        void siglistToPblist(vector<IdxSigEntry> &slist,
-                idxfile::EntryList &pblist);
-        void siglistToPblist();
         void clear();
         string serialize();
         void deSerialize(string buf);

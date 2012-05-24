@@ -1,11 +1,11 @@
 SHELL=/bin/sh
 
-OBJS=idxanalyzer.o main.o protobuf/index.pb.o
+OBJS=idxanalyzer.o main.o 
 CXXFLAGS=-Wall 
 CXX=g++
-INCLUDES=-I/home/manio/programs/protobuf-2.4.1/include
-LIBS=-lm -lrt -lprotobuf
-LDFLAGS=-L/home/manio/programs/protobuf-2.4.1/lib 
+INCLUDES=
+LIBS=-lm -lrt 
+LDFLAGS=-D_FILE_OFFSET_BITS=64  
 xmain:${OBJS}
 	${CXX} ${CXXFLAGS} ${LDFLAGS} ${INCLUDES} -o $@ ${OBJS} ${LIBS}
 

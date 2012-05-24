@@ -1,5 +1,6 @@
 #include "idxanalyzer.h"
 
+#include <string.h>
 #include <algorithm>
 
 //for debugging
@@ -13,7 +14,7 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
             iter != idx_entry_list.end();
             iter++ )
     {
-        cout << "[" << iter->proc << "]" << endl;
+        cout << "[" << iter->original_chunk << "]" << endl;
         cout << "----Logical Offset----" << endl;
         iter->logical_offset.show();
         
@@ -142,75 +143,6 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
 }
 
 
-
-//find out pattern of a number sequence 
-void IdxSignature::discoverPattern(  vector<off_t> const &seq )
-{
-    vector<off_t>::const_iterator p_lookahead_win; // pointer(iterator) to the lookahead window
-    PatternStack<PatternUnit> pattern_stack;
-
-    p_lookahead_win = seq.begin();
-    pattern_stack.clear();
-
-    //cout << endl << "this is discoverPattern() :)" << endl;
-
-    while ( p_lookahead_win != seq.end() ) {
-        //lookahead window is not empty
-        Tuple cur_tuple = searchNeighbor( seq, p_lookahead_win );
-        //cur_tuple.show();
-        if ( cur_tuple.isRepeatingNeighbor() ) {
-            if ( pattern_stack.isPopSafe( cur_tuple.length ) ) {
-                //safe
-                pattern_stack.popElem( cur_tuple.length );
-
-                vector<off_t>::const_iterator first, last;
-                first = p_lookahead_win;
-                last = p_lookahead_win + cur_tuple.length;
-
-                PatternUnit pu;
-                pu.seq.assign(first, last);
-                pu.cnt = 2;
-
-                pattern_stack.push( pu );
-                p_lookahead_win += cur_tuple.length;
-            } else {
-                //unsafe
-                PatternUnit pu = pattern_stack.top();
-
-                if ( pu.seq.size() == cur_tuple.length ) {
-                    //the subseq in lookahead window repeats
-                    //the top pattern in stack
-                    pu.cnt++;
-                    pattern_stack.popPattern();
-                    pattern_stack.push(pu);
-
-                    p_lookahead_win += cur_tuple.length;
-                } else {
-                    //cannot pop out cur_tuple.length elems without
-                    //totally breaking any pattern.
-                    //So we simply add one elem to the stack
-                    PatternUnit pu2;
-                    pu2.seq.push_back( *p_lookahead_win );
-                    pu2.cnt = 1;
-                    pattern_stack.push(pu2);
-                    p_lookahead_win++;
-                }
-            }
-
-
-        } else {
-            //(0,0,x)
-            PatternUnit pu;
-            pu.seq.push_back(cur_tuple.next_symbol);
-            pu.cnt = 1;
-
-            pattern_stack.push(pu); 
-            p_lookahead_win++;
-        }
-        //pattern_stack.show();
-    }
-
-}
 
 //find out pattern of a number sequence(deltas) with its
 //original sequence
@@ -417,96 +349,9 @@ void IdxSigEntryList::show()
 
 
 
-void idxSigUnit2PBSigUnit( const IdxSigUnit &iunit, idxfile::SigUnit *pbunit )
-{
-    pbunit->set_init(iunit.init);
-    vector<off_t>::const_iterator iter;
-    for ( iter = iunit.seq.begin();
-            iter != iunit.seq.end();
-            iter++ )
-    {
-        pbunit->add_deltas(*iter);
-    }
-    pbunit->set_cnt(iunit.cnt);
-}
-
-void IdxSigEntryList::siglistToPblist(vector<IdxSigEntry> &slist,
-        idxfile::EntryList &pblist)
-{
-    //read out every entry in slist and put it to pblist
-    vector<IdxSigEntry>::iterator iter;
-
-    for ( iter = slist.begin();
-            iter != slist.end();
-            iter++)
-    {
-        idxfile::Entry *fentry = pblist.add_entry();
-        fentry->set_proc( (*iter).original_chunk );
-        idxfile::SigUnit *su = fentry->mutable_logical_offset();
-        idxSigUnit2PBSigUnit( (*iter).logical_offset, su );
-
-        //length
-        vector<IdxSigUnit>::const_iterator iter2;
-        for ( iter2 = (*iter).length.begin();
-                iter2 != (*iter).length.end();
-                iter2++ )
-        {
-            idxfile::SigUnit *su = fentry->add_length();
-            idxSigUnit2PBSigUnit( (*iter2), su);
-        }
-
-        //physical offset
-        for ( iter2 = (*iter).length.begin();
-                iter2 != (*iter).length.end();
-                iter2++ )
-        {
-            idxfile::SigUnit *su = fentry->add_physical_offset();
-            idxSigUnit2PBSigUnit( (*iter2), su);
-        }
-    }
-}
-
-void IdxSigEntryList::siglistToPblist()
-{
-    siglistToPblist(list, pb_list);
-}
-
-
-void IdxSigEntryList::saveToFile(const char *filename)
-{
-    siglistToPblist();
-    fstream output(filename, ios::out | ios::trunc | ios::binary);
-    if ( !pb_list.SerializeToOstream(&output) ) {
-        cerr<<"failed to write to myfile."<<endl;
-    } else {
-        cout<<"Write to myfile: OK"<<endl;
-    }
-    output.close();
-}
-
-void IdxSigEntryList::saveToFile(const int fd)
-{
-    string buf = serialize();
-    if ( buf.size() > 0 ) {
-        Util::Writen(fd, &buf[0], buf.size());
-    }
-}
-
-void IdxSigEntryList::readFromFile(char *filename)
-{
-    fstream input(filename, ios::in | ios::binary);
-    if ( !input ) {
-        cerr << "can not open my file.\n";
-    } else if ( !pb_list.ParseFromIstream(&input) ) {
-        cerr << "failed to parse from myfile\n";
-    }
-    input.close();
-}
-
 void IdxSigEntryList::clear()
 {
     list.clear();
-    pb_list.Clear();
 }
 
 
@@ -764,114 +609,5 @@ void IdxSigUnit::show() const
     PatternUnit::show();
 }
 
-off_t sumVector( vector<off_t> seq )
-{
-    vector<off_t>::const_iterator iiter;
-    
-    off_t sum = 0;
-    for ( iiter = iter->seq.begin() ;
-          iiter != iter->seq.end() ;
-          iiter++ )
-    {
-        sum += *iiter;
-    }
-    
-    return sum;
-}
-
-off_t IdxSigEntry::getLengthByPos( int pos ) const
-{
-    int cur_pos = 0; //it should always point to sigunit.init
-
-    vector<IdxSigUnit>::const_iterator iter;
-    vector<off_t>::const_iterator iiter;
-
-
-    for ( iter = length.begin() ;
-          iter != length.end() ;
-          iter++ )
-    {
-        int range_start, range_end;
-        int numoflen = iter->seq.size()*iter->cnt;
-        
-        if ( cur_pos <= pos && pos < cur_pos + numoflen ) {
-            //in the range that pointed to by iter
-            int rpos = pos - cur_pos;
-            off_t delta_sum = sumVector(iter->seq);
-            int remain = rpos % iter->seq.size();
-            int factor = rpos / iter->seq.size();
-
-        } else {
-            //not in the range of iter
-            cur_pos += numoflen; //keep track of current pos
-        }
-
-    }
-}
-
-bool IdxSigEntry::contain( off_t offset ) const
-{
-    vector<IdxSigUnit>::const_iterator iter;
-    vector<off_t>::const_iterator iiter;
-    vector<off_t>::const_iterator off_delta_iter;
-    off_t &logical = offset;
-
-    off_t off_init = logical_offset.init;
-    off_t delta_sum = 0;
-    for ( off_delta_iter = logical_offset.seq.begin();
-          off_delta_iter != logical_offset.seq.end();
-          off_delta_iter++ )
-    {
-        delta_sum += *off_delta_iter;
-    }
-    ostringstream oss;
-    oss << delta_sum;
-    mlog(IDX_WARN, "delta_sum:%s", oss.str().c_str());
-    
-    off_t logical_remain = (logical - off_init) % delta_sum;
-    assert( logical_remain >= 0 );
-    int factor = (logical - off_init - logical_remain) / delta_sum;
-
-    if ( factor >= logical_offset.cnt ) {
-        // logical is very large.
-        // check the last offset
-        //
-        // note that there are totally cnt*seq.size() offsets
-        // in this class
-        // they are:
-        // [init][init+d0][init+d0+d1]...[init+(d0+d1+..+dp)*cnt-dp]
-        // [init+(d0+d1+..+dp)*cnt] is the 'last+1' offset
-    } else {
-        off_t sum = 0;
-        for ( off_delta_iter = logical_offset.seq.begin();
-              off_delta_iter != logical_offset.seq.end()
-              && sum < logical_remain;
-              off_delta_iter++ )
-        {
-            sum += *off_delta_iter;
-        }
-        assert(off_delta_iter != logical_offset.seq.end());
-
-        int pos = off_delta_iter - logical_offset.seq.begin();
-        int pre = pos - 1; //should check the one before pos
-        // should check logical_offset.seq.size()*factor+pre+1: this
-        // is the position of pre if offsets are expanded.
-        // Assume the rank for the offset is like:
-        // init:0, init+d0:1
-    }
-
-    for ( iter = length.begin() ;
-          iter != length.end() ;
-          iter++ )
-    {
-        for ( iiter = iter->seq.begin() ;
-              iiter != iter->seq.end() ;
-              iiter++ )
-        {
-            // iiter iterates through all deltas of length 
-        }
-    }
-    return false;
-}
 
 
