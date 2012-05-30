@@ -104,6 +104,18 @@ class SigStack: public PatternStack <T>
             }
         }
 
+        int size()
+        {
+            typename vector<T>::const_iterator iter;
+            int size = 0;
+            for ( iter = this->the_stack.begin();
+                    iter != this->the_stack.end();
+                    iter++ )
+            {
+                size += iter->size();
+            }
+            return size;
+        }
 };
 
 class Tuple {

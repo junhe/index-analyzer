@@ -108,10 +108,10 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
 
         vector<off_t>::iterator lstart, lend;
         lstart = length_delta.begin() + range_start;
-        if ( length_delta.end() - (length_delta.begin() + range_end) > 0 ) {
-            lend = length_delta.begin() + range_end;
+        if ( range_end == length.end() - length.begin() ) {
+            lend = length_delta.begin() + range_end - 1;
         } else {
-            lend = length_delta.end();
+            lend = length_delta.begin() + range_end;
         }
         SigStack<IdxSigUnit> length_stack = 
             discoverSigPattern( 
@@ -173,8 +173,12 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
     if (! (seq.size() == orig.size()
             || seq.size() + 1 == orig.size() ) )
     {
-        fprintf(stderr, "discoverSigPattern() needs to be used with "
-                "seq.size==orig.size or seq.size+1==orig.size");
+        ostringstream oss;
+        oss << "seq.size():" << seq.size()
+            << " orig.size():" << orig.size() << endl;
+        printf("discoverSigPattern() needs to be used with "
+                "seq.size==orig.size or seq.size+1==orig.size. \n %s", 
+                oss.str().c_str() );
         exit(-1);
     }
 
@@ -284,9 +288,11 @@ Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
     //i goes left util the begin or reaching window size
     int distance = 0;
     i = p_lookahead_win;
-    while ( i != seq.begin() && distance < win_size ) {
+    int remain = seq.end() - p_lookahead_win;
+    while ( i != seq.begin() 
+            && (p_lookahead_win - i) < win_size
+            && (p_lookahead_win - i) < remain ) {
         i--;
-        distance++;
     }
     //termination: i == seq.begin() or distance == win_size
 
