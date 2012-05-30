@@ -2,7 +2,7 @@
 
 #include <string.h>
 #include <algorithm>
-
+#include <sstream>
 //for debugging
 void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
 {
