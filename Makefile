@@ -2,7 +2,7 @@ SHELL=/bin/sh
 
 OBJS=idxanalyzer.o main.o 
 CXXFLAGS=-D_FILE_OFFSET_BITS=64 
-CXX=g++
+CXX=mpicxx
 INCLUDES=
 LIBS=-lm -lrt 
 #LDFLAGS=

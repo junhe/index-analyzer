@@ -2,17 +2,24 @@
 #include <sstream>
 #include <iterator>
 #include <stdlib.h>
+#include <mpi.h>
 
 #include "idxanalyzer.h"
 
 using namespace std;
 
+int rank, size;
 
 
 vector<HostEntry> bufferEntries(ifstream &idx_file, int &maxproc);
 
 int main(int argc, char ** argv)
 {
+    MPI_Init (&argc, &argv);/* starts MPI */
+    MPI_Comm_rank (MPI_COMM_WORLD, &rank);/* get current process id */
+    MPI_Comm_size (MPI_COMM_WORLD, &size);/* get number of processes */
+    
+    
     IdxSignature mysig;
     ifstream idx_file;
     vector<HostEntry> entry_buf;
@@ -40,6 +47,7 @@ int main(int argc, char ** argv)
     sig_entrylist.show();
 
     cout<<"End of the program"<<endl;
+    MPI_Finalize();
     return 0;
 }
 
