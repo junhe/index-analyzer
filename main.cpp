@@ -11,10 +11,13 @@ using namespace std;
 int rank, size;
 
 
-vector<HostEntry> bufferEntries(ifstream &idx_file, int &maxproc);
+void bufferEntries(ifstream &idx_file, int &maxproc);
 
 int main(int argc, char ** argv)
 {
+    int rc;
+    MPI_Status stat;
+
     MPI_Init (&argc, &argv);/* starts MPI */
     MPI_Comm_rank (MPI_COMM_WORLD, &rank);/* get current process id */
     MPI_Comm_size (MPI_COMM_WORLD, &size);/* get number of processes */
@@ -27,25 +30,42 @@ int main(int argc, char ** argv)
     IdxSigEntryList sig_entrylist2;
     IdxSigEntry myentry;
 
+    printf( "Hello world from process %d of %d\n", rank, size );
 
-    idx_file.open(argv[1]);
-    if (idx_file.is_open()) {
-        cout << "map file is open: " << argv[1]  << endl;
+    //all ranks open a file for writing together
+
+    if ( rank == 0 ) {
+        // Rank 0 opens map file
+        idx_file.open(argv[1]);
+        if (idx_file.is_open()) {
+            cout << "map file is open: " << argv[1]  << endl;
+        } else {
+            cout << "file is not open." << argv[1] << endl;
+            exit(-1);
+        }
+        int maxproc;
+        bufferEntries(idx_file, maxproc);
     } else {
-        cout << "file is not open." << argv[1] << endl;
-        exit(-1);
-    }
+        // other ranks just receive offset and length from rank 0
+        while (1) {
+            int flag = 0; //1: has entry comming, 0:no entry comming
+            rc = MPI_Recv( &flag, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &stat );
+            if ( flag == 1 ) {
+                // entry is comming
+                HostEntry entry;
+                rc = MPI_Recv( &entry, sizeof(HostEntry), MPI_CHAR, 0, 1, 
+                               MPI_COMM_WORLD, &stat );
+                cout << "[" << rank << "] [" << entry.id << "]: " 
+                     << entry.logical_offset << ", " 
+                     << entry.physical_offset << ", "
+                     << entry.length << endl;
+            } else {
+                break;
+            }
+        }
 
-    int maxproc;
-    entry_buf = bufferEntries(idx_file, maxproc);
-    
-    int proc;
-    for ( proc = 0 ; proc <= maxproc ; proc++ ) {
-        sig_entrylist.append(mysig.generateIdxSignature(entry_buf, proc));
     }
     
-    sig_entrylist.show();
-
     cout<<"End of the program"<<endl;
     MPI_Finalize();
     return 0;
@@ -64,15 +84,15 @@ void deleteSubStr( string del, string &line )
     }
 }
 
-vector<HostEntry> bufferEntries(ifstream &idx_file, int &numofproc)
+void bufferEntries(ifstream &idx_file, int &maxprocnum)
 {
     //cout << "i am bufferEntries()" << endl;
     HostEntry h_entry;
     HostEntry &idx_entry = h_entry;
     vector<HostEntry> entry_buf;
-    int i;
+    int i,flag;
 
-    numofproc = 0;
+    maxprocnum = 0;
     for ( i = 0 ; idx_file.good(); i++ ) {
         string line;
         if (  !idx_file.good()
@@ -100,9 +120,10 @@ vector<HostEntry> bufferEntries(ifstream &idx_file, int &numofproc)
                 back_inserter<vector<string> >(tokens));
 
         idx_entry.id = atoi( tokens[0].c_str() );
-        if ( idx_entry.id > numofproc ) {
-            numofproc = idx_entry.id;
+        if ( idx_entry.id > maxprocnum ) {
+            maxprocnum = idx_entry.id;
         }
+        assert( idx_entry.id < size );
 
 
         stringstream convert(tokens[2]);
@@ -132,10 +153,27 @@ vector<HostEntry> bufferEntries(ifstream &idx_file, int &numofproc)
         //idx_entry.end_timestamp = atof( tokens[5].c_str() );
         //sscanf( tokens[6].c_str(), "%lld", &(idx_entry.logical_tail));
         //sscanf( tokens[8].c_str(), "%lld", &(idx_entry.physical_offset));
-
-
-        entry_buf.push_back(h_entry);
+        
+        if ( h_entry.id == 0 ) {
+            //if it is rank0's job, just do it
+            cout << "[" << rank << "] [" << h_entry.id << "]: " 
+                 << h_entry.logical_offset << ", " 
+                 << h_entry.physical_offset << ", "
+                 << h_entry.length << endl;
+        } else {
+            flag = 1;
+            MPI_Send(&flag, 1, MPI_INT, h_entry.id, 1, MPI_COMM_WORLD);
+            MPI_Send(&h_entry, sizeof(HostEntry), MPI_CHAR, h_entry.id, 1, 
+                    MPI_COMM_WORLD);
+        }
     }
-return entry_buf;
+
+    cout << "all entries in map are handled" << endl;
+    flag = 0;
+    int rankid;
+    for ( rankid = 0 ; rankid <= maxprocnum ; rankid++ ) {
+        MPI_Send(&flag, 1, MPI_INT, rankid, 1, MPI_COMM_WORLD);
+    }
+    return ;
 }
 
