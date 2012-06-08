@@ -63,20 +63,24 @@ int main(int argc, char ** argv)
                 HostEntry entry;
                 rc = MPI_Recv( &entry, sizeof(HostEntry), MPI_CHAR, 0, 1, 
                                MPI_COMM_WORLD, &stat );
-                /*
-                cout << "[" << rank << "] [" << entry.id << "]: " 
-                     << entry.logical_offset << ", " 
-                     << entry.physical_offset << ", "
-                     << entry.length << endl;
-                     */
+                
                 string buf(entry.length, 'a'+rank);
                 assert(buf.size()==entry.length);
                 MPI_File_write_at(fh, entry.logical_offset,(void *) buf.c_str(), 
                                   entry.length, MPI_CHAR, &stat);
                 mywrites++;
+                /*
                 if (mywrites % 1024 == 0) {
                     cout <<".";
+                    fflush(stdout);
                 }
+                */
+
+                cout << "[" << rank << "] [" << entry.id << "]: " 
+                     << entry.logical_offset << ", " 
+                     << entry.physical_offset << ", "
+                     << entry.length << endl;
+
             } else {
                 break;
             }
@@ -103,6 +107,19 @@ void deleteSubStr( string del, string &line )
     }
 }
 
+void replaceSubStr( string del, string newstr, string &line ) 
+{
+    size_t found;
+    
+    found = line.find(del);
+    while (found != string::npos) 
+    {
+        line.replace(found, del.size(), newstr);  
+        found = line.find(del);
+    }
+}
+
+
 void bufferEntries(ifstream &idx_file, int &maxprocnum)
 {
     //cout << "i am bufferEntries()" << endl;
@@ -126,9 +143,9 @@ void bufferEntries(ifstream &idx_file, int &maxprocnum)
             continue;
         }
         
-        deleteSubStr( "[", line );
-        deleteSubStr( "]", line );
-        deleteSubStr( ". ", line );
+        replaceSubStr( "[", " ", line );
+        replaceSubStr( "]", " ", line );
+        replaceSubStr( ". ", " ", line );
         //cout << line << endl;
 
         vector<string> tokens;
@@ -142,12 +159,10 @@ void bufferEntries(ifstream &idx_file, int &maxprocnum)
         if ( idx_entry.id > maxprocnum ) {
             maxprocnum = idx_entry.id;
         }
-        /*
         if ( idx_entry.id >= size ) {
             fprintf(stderr, "num of proc is too small for this map. mapid:%d", idx_entry.id);
         }
         assert( idx_entry.id < size );
-        */
 
         stringstream convert(tokens[2]);
         if ( !(convert >> idx_entry.logical_offset) ) {
@@ -177,31 +192,27 @@ void bufferEntries(ifstream &idx_file, int &maxprocnum)
         //sscanf( tokens[6].c_str(), "%lld", &(idx_entry.logical_tail));
         //sscanf( tokens[8].c_str(), "%lld", &(idx_entry.physical_offset));
        
-    cout << "[" << rank << "] [" << h_entry.id << "]: " 
-                 << h_entry.logical_offset << ", " 
-                 << h_entry.physical_offset << ", "
-                 << h_entry.length << endl;
-        
-        continue;
-
         if ( h_entry.id == 0 ) {
             //if it is rank0's job, just do it
             static int mywrites = 0;
-            /*
-            cout << "[" << rank << "] [" << h_entry.id << "]: " 
-                 << h_entry.logical_offset << ", " 
-                 << h_entry.physical_offset << ", "
-                 << h_entry.length << endl;
-            */
+            
             string buf(h_entry.length, 'a'+rank);
             //cout << buf << endl;
             assert(buf.size()==h_entry.length);
             MPI_File_write_at(fh, h_entry.logical_offset, (void *)buf.c_str(), 
                               h_entry.length, MPI_CHAR, &stat);
             mywrites++;
+            
+            cout << "[" << rank << "] [" << h_entry.id << "]: " 
+                 << h_entry.logical_offset << ", " 
+                 << h_entry.physical_offset << ", "
+                 << h_entry.length << endl;
+            /*
             if (mywrites % 1024 == 0) {
                 cout <<".";
+                fflush(stdout);
             }
+            */
         } else {
             flag = 1;
             MPI_Send(&flag, 1, MPI_INT, h_entry.id, 1, MPI_COMM_WORLD);
@@ -218,4 +229,5 @@ void bufferEntries(ifstream &idx_file, int &maxprocnum)
     }
     return ;
 }
+
 
