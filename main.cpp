@@ -1,5 +1,5 @@
 /* 
- * Usage: ./xmain mapfile outputfile
+ * Usage: mpirun -np num-of-proc-in-map-file ./xmain mapfile outputfile
  */
 
 #include <iostream>
