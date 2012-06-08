@@ -62,10 +62,13 @@ int main(int argc, char ** argv)
                 HostEntry entry;
                 rc = MPI_Recv( &entry, sizeof(HostEntry), MPI_CHAR, 0, 1, 
                                MPI_COMM_WORLD, &stat );
+                /*
                 cout << "[" << rank << "] [" << entry.id << "]: " 
                      << entry.logical_offset << ", " 
                      << entry.physical_offset << ", "
                      << entry.length << endl;
+                     */
+                cout <<".";
                 string buf(entry.length, 'a'+rank);
                 MPI_File_write_at(fh, entry.logical_offset,(void *) buf.c_str(), 
                                   entry.length, MPI_CHAR, &stat);
@@ -134,6 +137,9 @@ void bufferEntries(ifstream &idx_file, int &maxprocnum)
         if ( idx_entry.id > maxprocnum ) {
             maxprocnum = idx_entry.id;
         }
+        if ( idx_entry.id >= size ) {
+            fprintf(stderr, "num of proc is too small for this map. mapid:%d", idx_entry.id);
+        }
         assert( idx_entry.id < size );
 
 
@@ -167,10 +173,13 @@ void bufferEntries(ifstream &idx_file, int &maxprocnum)
         
         if ( h_entry.id == 0 ) {
             //if it is rank0's job, just do it
+            /*
             cout << "[" << rank << "] [" << h_entry.id << "]: " 
                  << h_entry.logical_offset << ", " 
                  << h_entry.physical_offset << ", "
                  << h_entry.length << endl;
+            */
+            cout <<".";
             string buf(h_entry.length, 'a'+rank);
             //cout << buf << endl;
             MPI_File_write_at(fh, h_entry.logical_offset, (void *)buf.c_str(), 
