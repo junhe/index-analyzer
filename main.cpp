@@ -16,7 +16,7 @@ int rank, size;
 
 
 MPI_Status stat;
-MPI_File fh; 
+MPI_File fh;
 void bufferEntries(ifstream &idx_file, int &maxproc);
 
 int main(int argc, char ** argv)
@@ -54,6 +54,7 @@ int main(int argc, char ** argv)
         bufferEntries(idx_file, maxproc);
     } else {
         // other ranks just receive offset and length from rank 0
+        static int mywrites = 0;
         while (1) {
             int flag = 0; //1: has entry comming, 0:no entry comming
             rc = MPI_Recv( &flag, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &stat );
@@ -68,10 +69,14 @@ int main(int argc, char ** argv)
                      << entry.physical_offset << ", "
                      << entry.length << endl;
                      */
-                cout <<".";
                 string buf(entry.length, 'a'+rank);
+                assert(buf.size()==entry.length);
                 MPI_File_write_at(fh, entry.logical_offset,(void *) buf.c_str(), 
                                   entry.length, MPI_CHAR, &stat);
+                mywrites++;
+                if (mywrites % 1024 == 0) {
+                    cout <<".";
+                }
             } else {
                 break;
             }
@@ -137,11 +142,12 @@ void bufferEntries(ifstream &idx_file, int &maxprocnum)
         if ( idx_entry.id > maxprocnum ) {
             maxprocnum = idx_entry.id;
         }
+        /*
         if ( idx_entry.id >= size ) {
             fprintf(stderr, "num of proc is too small for this map. mapid:%d", idx_entry.id);
         }
         assert( idx_entry.id < size );
-
+        */
 
         stringstream convert(tokens[2]);
         if ( !(convert >> idx_entry.logical_offset) ) {
@@ -170,20 +176,32 @@ void bufferEntries(ifstream &idx_file, int &maxprocnum)
         //idx_entry.end_timestamp = atof( tokens[5].c_str() );
         //sscanf( tokens[6].c_str(), "%lld", &(idx_entry.logical_tail));
         //sscanf( tokens[8].c_str(), "%lld", &(idx_entry.physical_offset));
+       
+    cout << "[" << rank << "] [" << h_entry.id << "]: " 
+                 << h_entry.logical_offset << ", " 
+                 << h_entry.physical_offset << ", "
+                 << h_entry.length << endl;
         
+        continue;
+
         if ( h_entry.id == 0 ) {
             //if it is rank0's job, just do it
+            static int mywrites = 0;
             /*
             cout << "[" << rank << "] [" << h_entry.id << "]: " 
                  << h_entry.logical_offset << ", " 
                  << h_entry.physical_offset << ", "
                  << h_entry.length << endl;
             */
-            cout <<".";
             string buf(h_entry.length, 'a'+rank);
             //cout << buf << endl;
+            assert(buf.size()==h_entry.length);
             MPI_File_write_at(fh, h_entry.logical_offset, (void *)buf.c_str(), 
                               h_entry.length, MPI_CHAR, &stat);
+            mywrites++;
+            if (mywrites % 1024 == 0) {
+                cout <<".";
+            }
         } else {
             flag = 1;
             MPI_Send(&flag, 1, MPI_INT, h_entry.id, 1, MPI_COMM_WORLD);
