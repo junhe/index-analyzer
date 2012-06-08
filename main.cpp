@@ -1,3 +1,7 @@
+/* 
+ * Usage: ./xmain mapfile outputfile
+ */
+
 #include <iostream>
 #include <sstream>
 #include <iterator>
@@ -11,12 +15,13 @@ using namespace std;
 int rank, size;
 
 
+MPI_Status stat;
+MPI_File fh; 
 void bufferEntries(ifstream &idx_file, int &maxproc);
 
 int main(int argc, char ** argv)
 {
     int rc;
-    MPI_Status stat;
 
     MPI_Init (&argc, &argv);/* starts MPI */
     MPI_Comm_rank (MPI_COMM_WORLD, &rank);/* get current process id */
@@ -33,6 +38,8 @@ int main(int argc, char ** argv)
     printf( "Hello world from process %d of %d\n", rank, size );
 
     //all ranks open a file for writing together
+    MPI_File_open( MPI_COMM_WORLD, argv[2], 
+                  MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh );
 
     if ( rank == 0 ) {
         // Rank 0 opens map file
@@ -59,13 +66,17 @@ int main(int argc, char ** argv)
                      << entry.logical_offset << ", " 
                      << entry.physical_offset << ", "
                      << entry.length << endl;
+                string buf(entry.length, 'a'+rank);
+                MPI_File_write_at(fh, entry.logical_offset,(void *) buf.c_str(), 
+                                  entry.length, MPI_CHAR, &stat);
             } else {
                 break;
             }
         }
 
     }
-    
+   
+    MPI_File_close(&fh);
     cout<<"End of the program"<<endl;
     MPI_Finalize();
     return 0;
@@ -160,6 +171,10 @@ void bufferEntries(ifstream &idx_file, int &maxprocnum)
                  << h_entry.logical_offset << ", " 
                  << h_entry.physical_offset << ", "
                  << h_entry.length << endl;
+            string buf(h_entry.length, 'a'+rank);
+            //cout << buf << endl;
+            MPI_File_write_at(fh, h_entry.logical_offset, (void *)buf.c_str(), 
+                              h_entry.length, MPI_CHAR, &stat);
         } else {
             flag = 1;
             MPI_Send(&flag, 1, MPI_INT, h_entry.id, 1, MPI_COMM_WORLD);
