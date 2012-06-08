@@ -85,6 +85,17 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
         physical_offset.push_back(iter->physical_offset);
     }
     
+    if ( !(logical_offset.size() == length.size() &&
+            length.size() == physical_offset.size()) ) {
+        ostringstream oss;
+        oss << "logical_offset.size():" << logical_offset.size() 
+            << "length.size():" << length.size()
+            << "physical_offset.size():" << physical_offset.size() << endl;
+        printf("sizes should be equal. %s", oss.str().c_str());
+        //cout << "size should be equal" << oss.str() << endl;
+        exit(-1);
+    }
+
     logical_offset_delta = buildDeltas(logical_offset);
     length_delta = buildDeltas(length);
     physical_offset_delta = buildDeltas(physical_offset);
@@ -105,14 +116,18 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
         //cout << stack_iter->init << " " ;
         IdxSigEntry idx_entry;
         range_end = range_start + stack_iter->size();
+        printf( "range_start:%d, range_end:%d, logical_offset.size():%d",
+                range_start, range_end, logical_offset.size());
+        assert( range_end <= logical_offset.size() );
 
-        vector<off_t>::iterator lstart, lend;
+        vector<off_t>::iterator lstart, lend; //iterator used for length_delta
         lstart = length_delta.begin() + range_start;
         if ( range_end == length.end() - length.begin() ) {
             lend = length_delta.begin() + range_end - 1;
         } else {
             lend = length_delta.begin() + range_end;
         }
+        
         SigStack<IdxSigUnit> length_stack = 
             discoverSigPattern( 
                     vector<off_t> (lstart, lend),
