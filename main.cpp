@@ -56,6 +56,20 @@ void deleteSubStr( string del, string &line )
     }
 }
 
+void replaceSubStr( string del, string newstr, string &line ) 
+{
+    size_t found;
+    
+    found = line.find(del);
+    while (found != string::npos) 
+    {
+        line.replace(found, del.size(), newstr);  
+        found = line.find(del);
+    }
+}
+
+
+
 vector<HostEntry> bufferEntries(ifstream &idx_file, int &numofproc)
 {
     //cout << "i am bufferEntries()" << endl;
@@ -79,9 +93,10 @@ vector<HostEntry> bufferEntries(ifstream &idx_file, int &numofproc)
             continue;
         }
         
-        deleteSubStr( "[", line );
-        deleteSubStr( "]", line );
-        deleteSubStr( ". ", line );
+        //cout << line << endl;
+        replaceSubStr( "[", " ", line );
+        replaceSubStr( "]", " ", line );
+        replaceSubStr( ". ", " ", line );
         //cout << line << endl;
 
         vector<string> tokens;
