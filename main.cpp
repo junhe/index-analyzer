@@ -3,12 +3,31 @@
  */
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <iterator>
 #include <stdlib.h>
 #include <mpi.h>
+#include <vector>
+#include <assert.h>
 
-#include "idxanalyzer.h"
+class HostEntry
+{
+    public:
+        off_t  logical_offset;
+        off_t  physical_offset;  // I tried so hard to not put this in here
+        // to save some bytes in the index entries
+        // on disk.  But truncate breaks it all.
+        // we assume that each write makes one entry
+        // in the data file and one entry in the index
+        // file.  But when we remove entries and
+        // rewrite the index, then we break this
+        // assumption.  blech.
+        size_t length;
+        double begin_timestamp;
+        double end_timestamp;
+        pid_t  id;      // needs to be last so no padding
+};
 
 using namespace std;
 
@@ -28,12 +47,8 @@ int main(int argc, char ** argv)
     MPI_Comm_size (MPI_COMM_WORLD, &size);/* get number of processes */
     
     
-    IdxSignature mysig;
     ifstream idx_file;
     vector<HostEntry> entry_buf;
-    IdxSigEntryList sig_entrylist;
-    IdxSigEntryList sig_entrylist2;
-    IdxSigEntry myentry;
 
     printf( "Hello world from process %d of %d\n", rank, size );
 
@@ -52,6 +67,7 @@ int main(int argc, char ** argv)
         }
         int maxproc;
         bufferEntries(idx_file, maxproc);
+        idx_file.close();
     } else {
         // other ranks just receive offset and length from rank 0
         static int mywrites = 0;
@@ -88,8 +104,8 @@ int main(int argc, char ** argv)
 
     }
    
-    MPI_File_close(&fh);
     cout<<"End of the program"<<endl;
+    MPI_File_close(&fh);
     MPI_Finalize();
     return 0;
 }
