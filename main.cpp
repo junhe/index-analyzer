@@ -2,6 +2,8 @@
 #include <sstream>
 #include <iterator>
 #include <stdlib.h>
+#include <stdio.h>
+#include <fcntl.h>
 
 #include "idxanalyzer.h"
 
@@ -15,19 +17,29 @@ int main(int argc, char ** argv)
 {
     IdxSignature mysig;
     ifstream idx_file;
+    int fd;
     vector<HostEntry> entry_buf;
     IdxSigEntryList sig_entrylist;
-    IdxSigEntryList sig_entrylist2;
-    IdxSigEntry myentry;
-
+    
 
     idx_file.open(argv[1]);
     if (idx_file.is_open()) {
-        cout << "map file is open: " << argv[1]  << endl;
+        cerr << "map file is open: " << argv[1]  << endl;
     } else {
-        cout << "file is not open." << argv[1] << endl;
+        cerr << "map file is not open." << argv[1] << endl;
         exit(-1);
     }
+
+    if ( argc == 3 ) {
+        fd = open( argv[2], O_WRONLY | O_CREAT );
+        if ( fd == -1 ) {
+            cerr << "index file is not open" << endl;
+            exit(-1);
+        } else {
+            cerr << "index file is not open" << endl;
+        }
+    }
+
 
     int maxproc;
     entry_buf = bufferEntries(idx_file, maxproc);
@@ -39,7 +51,13 @@ int main(int argc, char ** argv)
     
     cout << sig_entrylist.show();
 
-    cout<<"End of the program"<<endl;
+    if ( argc == 3 ) {
+        sig_entrylist.saveToFile(fd);
+        cerr << "index saved to " << argv[2] << endl;
+        close(fd);
+    }
+
+    cerr<<"End of the program"<<endl;
     return 0;
 }
 
@@ -70,7 +88,7 @@ void replaceSubStr( string del, string newstr, string &line )
 
 vector<HostEntry> bufferEntries(ifstream &idx_file, int &numofproc)
 {
-    //cout << "i am bufferEntries()" << endl;
+    //cerr << "i am bufferEntries()" << endl;
     HostEntry h_entry;
     HostEntry &idx_entry = h_entry;
     vector<HostEntry> entry_buf;
@@ -87,14 +105,14 @@ vector<HostEntry> bufferEntries(ifstream &idx_file, int &numofproc)
         }
 
         if ( line[0] == '#' ) {
-            cout << "skiping---" << line << endl;
+            cerr << "skiping---" << line << endl;
             continue;
         }
         
         replaceSubStr( "[", " ", line );
         replaceSubStr( "]", " ", line );
         replaceSubStr( ". ", " ", line );
-        //cout << line << endl;
+        //cerr << line << endl;
 
         vector<string> tokens;
         vector<string>::iterator iter;
@@ -111,21 +129,21 @@ vector<HostEntry> bufferEntries(ifstream &idx_file, int &numofproc)
 
         stringstream convert(tokens[2]);
         if ( !(convert >> idx_entry.logical_offset) ) {
-            cout << "error on converting" << endl;
+            cerr << "error on converting" << endl;
             exit(-1);
         }
 
         convert.clear();
         convert.str(tokens[3]);
         if ( !(convert >> idx_entry.length) ) {
-            cout << "error on converting" << endl;
+            cerr << "error on converting" << endl;
             exit(-1);
         }
 
         convert.clear();
         convert.str(tokens[8]);
         if ( !(convert >> idx_entry.physical_offset) ) {
-            cout << "error on converting" << endl;
+            cerr << "error on converting" << endl;
             exit(-1);
         }
 

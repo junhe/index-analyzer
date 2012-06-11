@@ -72,7 +72,7 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
         oss << "logical_offset.size():" << logical_offset.size() 
             << "length.size():" << length.size()
             << "physical_offset.size():" << physical_offset.size() << endl;
-        printf("sizes should be equal. %s", oss.str().c_str());
+        fprintf(stderr, "sizes should be equal. %s", oss.str().c_str());
         //cout << "size should be equal" << oss.str() << endl;
         exit(-1);
     }
@@ -97,8 +97,8 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
         //cout << stack_iter->init << " " ;
         IdxSigEntry idx_entry;
         range_end = range_start + stack_iter->size();
-        printf( "range_start:%d, range_end:%d, logical_offset.size():%d",
-                range_start, range_end, logical_offset.size());
+        //printf( "range_start:%d, range_end:%d, logical_offset.size():%d",
+        //        range_start, range_end, logical_offset.size());
         assert( range_end <= logical_offset.size() );
 
         vector<off_t>::iterator lstart, lend; //iterator used for length_delta
@@ -172,7 +172,7 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
         ostringstream oss;
         oss << "seq.size():" << seq.size()
             << " orig.size():" << orig.size() << endl;
-        printf("discoverSigPattern() needs to be used with "
+        fprintf(stderr,"discoverSigPattern() needs to be used with "
                 "seq.size==orig.size or seq.size+1==orig.size. \n %s", 
                 oss.str().c_str() );
         exit(-1);
