@@ -4,39 +4,20 @@
 #include <algorithm>
 #include <sstream>
 //for debugging
-void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
+string printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
 {
-    vector<IdxSigEntry>::const_iterator iter;
+    vector<IdxSigEntry>::iterator iter;
 
     ////cout << "this is printIdxEntries" << endl;
 
+    ostringstream showstr;
     for ( iter = idx_entry_list.begin();
             iter != idx_entry_list.end();
             iter++ )
     {
-        cout << "[" << iter->original_chunk << "]" << endl;
-        cout << "----Logical Offset----" << endl;
-        iter->logical_offset.show();
-        
-        vector<IdxSigUnit>::const_iterator iter2;
-
-        cout << "----Length----" << endl;
-        for (iter2 = iter->length.begin();
-                iter2 != iter->length.end();
-                iter2++ )
-        {
-            iter2->show(); 
-        }
-
-        cout << "----Physical Offset----" << endl;
-        for (iter2 = iter->physical_offset.begin();
-                iter2 != iter->physical_offset.end();
-                iter2++ )
-        {
-            iter2->show(); 
-        }
-        cout << "-------------------------------------" << endl;
+        showstr << iter->show();
     }
+    return showstr.str();
 }
 
 vector<off_t> buildDeltas( vector<off_t> seq ) 
