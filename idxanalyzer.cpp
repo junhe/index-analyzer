@@ -279,7 +279,7 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
     {
         it->compressRepeats();
         if (pattern_stack_compressed.the_stack.empty()) {
-            mlog(IDX_WARN, "Empty");
+            //mlog(IDX_WARN, "Empty");
             pattern_stack_compressed.the_stack.push_back(*it);
         } else {
             bool ret;
@@ -290,7 +290,7 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
         }
         //ostringstream oss;
         //oss << pattern_stack_compressed.show();
-        //mlog(IDX_WARN, "%s", oss.str().c_str());
+        ////mlog(IDX_WARN, "%s", oss.str().c_str());
     }
     
 
@@ -309,7 +309,7 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
             oss << *it << ",";
         }
         oss << endl;
-        mlog(IDX_ERR, "%s", oss.str().c_str());
+        //mlog(IDX_ERR, "%s", oss.str().c_str());
         exit(-1);
     }
 
@@ -419,7 +419,7 @@ void IdxSigEntryList::saveToFile(const int fd)
 {
     string buf = serialize();
     if ( buf.size() > 0 ) {
-        Util::Writen(fd, &buf[0], buf.size());
+        write(fd, &buf[0], buf.size());
     }
 }
 
@@ -465,7 +465,7 @@ header_t IdxSigUnit::bodySize()
 bool IdxSigUnit::append( IdxSigUnit &other )
 {
 
-    mlog(IDX_WARN, "in %s", __FUNCTION__);
+    //mlog(IDX_WARN, "in %s", __FUNCTION__);
 
     if ( this->isSeqRepeating() 
         && other.isSeqRepeating() )

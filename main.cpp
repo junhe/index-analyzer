@@ -37,7 +37,7 @@ int main(int argc, char ** argv)
         sig_entrylist.append(mysig.generateIdxSignature(entry_buf, proc));
     }
     
-    sig_entrylist.show();
+    cout << sig_entrylist.show();
 
     cout<<"End of the program"<<endl;
     return 0;
