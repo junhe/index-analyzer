@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <sstream>
 #include <stdint.h>
 
 using namespace std;
@@ -24,6 +25,8 @@ void appendToBuffer( string &to, const void *from, const int size );
 //Note that this function will increase start
 void readFromBuf( string &from, void *to, int &start, const int size );
 
+bool isContain( off_t off, off_t offset, off_t length );
+off_t sumVector( vector<off_t> seq );
 
 
 //used to describe a single pattern that found
@@ -39,7 +42,7 @@ class PatternUnit {
         {}
         
         int size() const;
-        virtual void show() const;
+        virtual string show() const;
 };
 
 //This is used to describ a single repeating
@@ -48,11 +51,15 @@ class IdxSigUnit: public PatternUnit {
     public:
         off_t init; // the initial value of 
                     // logical offset, length, or physical offset
-        void show() const;
+        string show() const;
 
         header_t bodySize();
         string serialize();
         void deSerialize(string buf);
+        off_t getValByPos( const int &pos ) ;
+        bool append( IdxSigUnit &other );
+        bool isSeqRepeating();
+        void compressRepeats();
 };
 
 template <class T> // T can be PatternUnit or IdxSigUnit
@@ -70,11 +77,11 @@ class PatternStack {
         T top ();
         typename vector<T>::const_iterator begin() const;
         typename vector<T>::const_iterator end() const;
-        virtual void show();
+        virtual string show();
         int bodySize();
         string serialize();    
         void deSerialize( string buf );
-    protected:
+        
         vector<T> the_stack;
 };
 
@@ -84,26 +91,27 @@ template <class T>
 class SigStack: public PatternStack <T> 
 {
     public:
-        virtual void show()
+        virtual string show()
         {
             typename vector<T>::const_iterator iter;
-
+            ostringstream showstr;
             for ( iter = this->the_stack.begin();
                     iter != this->the_stack.end();
                     iter++ )
             {
                 vector<off_t>::const_iterator off_iter;
-                cout << iter->init << "- " ;
+                showstr << iter->init << "- " ;
                 for ( off_iter = (iter->seq).begin();
                         off_iter != (iter->seq).end();
                         off_iter++ )
                 {
-                    cout << *off_iter << ", ";
+                    showstr << *off_iter << ", ";
                 }
-                cout << "^" << iter->cnt << endl;
+                showstr << "^" << iter->cnt << endl;
             }
+            return showstr.str(); 
         }
-
+        
         int size()
         {
             typename vector<T>::const_iterator iter;
@@ -116,6 +124,8 @@ class SigStack: public PatternStack <T>
             }
             return size;
         }
+
+        off_t getValByPos( const int &pos );
 };
 
 class Tuple {
@@ -155,10 +165,12 @@ class Tuple {
             return (offset == length && offset > 0);
         }
 
-        void show() {
-            cout << "(" << offset 
+        string show() {
+            ostringstream showstr;
+            showstr << "(" << offset 
                 << ", " << length
                 << ", " << next_symbol << ")" << endl;
+            return showstr.str();
         }
 };
 
@@ -233,12 +245,17 @@ class IdxSigEntry {
         pid_t new_chunk_id;    //This is not serialized yet.
                                //it should only be serialized in
                                //the context of global complex index
+                               //Now serialized
         IdxSigUnit logical_offset;
         SigStack<IdxSigUnit> length;
         SigStack<IdxSigUnit> physical_offset;
         string serialize();
         void deSerialize(string buf);
         int bodySize();
+        bool contains( const off_t &offset, int &pos );
+        string show();
+        bool append(IdxSigEntry &other);
+        friend ostream& operator <<(ostream&, IdxSigEntry&);
 };
 
 
@@ -248,15 +265,17 @@ class IdxSigEntryList {
 
     public:
         void append(IdxSigEntryList other);
+        void append(IdxSigEntry other, bool compress=false);
         void append(vector<IdxSigEntry> &other);
-        void show();
+        string show();
+        void saveToFile(const int fd);
         void clear();
         string serialize();
         void deSerialize(string buf);
         int bodySize();
 };
 
-void printIdxEntries( vector<IdxSigEntry> &idx_entry_list );
+string printIdxEntries( vector<IdxSigEntry> &idx_entry_list );
 vector<off_t> buildDeltas( vector<off_t> seq );
 
 template <class T>
@@ -415,16 +434,17 @@ PatternStack<T>::end() const
 }
 
 template <class T>
-void 
+string 
 PatternStack<T>::show()
 {
     typename vector<T>::const_iterator iter;
-    
+    ostringstream showstr;
+
     for ( iter = the_stack.begin();
             iter != the_stack.end();
             iter++ )
     {
-        iter->show();
+        showstr << iter->show();
         /*
         vector<off_t>::const_iterator off_iter;
         for ( off_iter = (iter->seq).begin();
@@ -436,6 +456,244 @@ PatternStack<T>::show()
         cout << "^" << iter->cnt << endl;
         */
     }
+    return showstr.str();
 }
+
+// pos has to be in the range
+template <class T>
+inline
+off_t SigStack<T>::getValByPos( const int &pos ) 
+{
+    int cur_pos = 0; //it should always point to sigunit.init
+
+    typename vector<T>::iterator iter;
+	
+    for ( iter = this->the_stack.begin() ;
+          iter != this->the_stack.end() ;
+          iter++ )
+    {
+        int numoflen = iter->seq.size() * iter->cnt;
+        
+        if ( numoflen == 0 ) {
+            numoflen = 1; //there's actually one element in *iter
+        } 
+        if (cur_pos <= pos && pos < cur_pos + numoflen ) {
+            //in the range that pointed to by iter
+            int rpos = pos - cur_pos;
+            return iter->getValByPos( rpos );
+        } else {
+            //not in the range of iter
+            cur_pos += numoflen; //keep track of current pos
+        }
+    }
+    assert(0); // Make it hard for the errors
+}
+
+
+// Decide whether offset is in this IdxSigEntry
+// Let assume there's no overwrite TODO:  this
+inline
+bool IdxSigEntry::contains( const off_t &offset, int &pos )
+{
+    //mlog(IDX_WARN, "EEEntering %s", __FUNCTION__);
+    //ostringstream oss;
+    //oss << show() << "LOOKING FOR:" << offset << endl;
+    //mlog(IDX_WARN, "%s", oss.str().c_str());
+
+    vector<IdxSigUnit>::const_iterator iter;
+    vector<off_t>::const_iterator iiter;
+    vector<off_t>::const_iterator off_delta_iter;
+    const off_t &logical = offset;
+
+    off_t delta_sum;
+        
+    delta_sum = sumVector(logical_offset.seq);
+    
+    //ostringstream oss;
+    //oss << delta_sum;
+    //mlog(IDX_WARN, "delta_sum:%s", oss.str().c_str());
+
+    // At this time, let me do it in the stupidest way
+    // It works for all cases. Not bad.
+    /*
+    int size = logical_offset.seq.size() * logical_offset.cnt;
+    int i;
+    for ( i = 0 ; 
+          i < size 
+          || i == 0 ; //have to check the first one.
+          i++ ) {
+        //ostringstream oss;
+        //oss << "i:" << i << "size:" << size << endl;
+        //mlog(IDX_WARN, "%s", oss.str().c_str());
+        if ( isContain(offset, logical_offset.getValByPos(i),
+                               length.getValByPos(i) ) )
+        {
+            pos = i;
+            return true;
+        }
+    }
+    return false;
+    */
+
+    ///////////////////////////////////////////////////
+    if ( offset < logical_offset.init ) {
+        //mlog(IDX_WARN, "offset < init");
+        return false;
+    }
+
+    if (  logical_offset.seq.size() * logical_offset.cnt <= 1 ) {
+        // Only one offset in logical_offset, just check that one
+        // Note that 5, [2]^1 and 5, []^0 are the same, they represent only 5
+        //mlog(IDX_WARN, "check the only one");
+        pos = 0;
+        return isContain(offset, logical_offset.init, length.getValByPos(0));
+    }
+
+    if ( logical_offset.init == offset ) {
+        //check the init separately from the matrix
+        //mlog(IDX_WARN, "Hit the init");
+        pos = 0;
+        return isContain(offset, logical_offset.init, length.getValByPos(0));
+    }
+
+    assert (delta_sum > 0); //let's not handl this at this time. TODO:
+
+    off_t roffset = offset - logical_offset.init; //logical offset starts from init
+    off_t col = roffset % delta_sum; 
+    off_t row = roffset / delta_sum; 
+
+    //oss.str("");
+    //oss<<"col:"<<col<<"row:"<<row;
+    //mlog(IDX_WARN, "%s", oss.str().c_str());
+
+    //cout << "col:" << col << endl;
+    //cout << "row:" << row << endl;
+
+    if ( row >= logical_offset.cnt ) {
+        // logical is very large.
+        // check the last offset
+        //
+        // note that there are totally cnt*seq.size() offsets
+        // in this class
+        // they are:
+        // [init][init+d0][init+d0+d1]...[init+(d0+d1+..+dp)*cnt-dp]
+        // [init+(d0+d1+..+dp)*cnt] is the 'last+1' offset
+        int last_pos = logical_offset.cnt * logical_offset.seq.size() - 1;
+        off_t off = logical_offset.getValByPos(last_pos);
+        off_t len = length.getValByPos(last_pos);
+        pos = last_pos;
+        //mlog(IDX_WARN, "check the last %d", pos);
+        return isContain(offset, off, len);
+    } else {
+        off_t sum = 0;
+        int col_pos;
+        
+        for ( col_pos = 0;
+              sum <= col;
+              col_pos++ )
+        {
+            sum += logical_offset.seq[col_pos];
+        }
+        
+        col_pos--;  //seq[0~col_pos] = sum
+
+        /*      
+        int chkpos_in_matric = col_pos - 1
+                               + row*logical_offset.seq.size() ;
+        int chkpos_in_logical_off = chkpos_in_matric + 1;
+        */
+        
+        pos = col_pos + row*logical_offset.seq.size() ;
+        //oss.str("");
+        //oss << "Inside." <<  "col_pos:" << col_pos << endl;
+        //oss << "chkpos_in_matric:" << chkpos_in_matric << endl;
+        //oss << "chkpos_in_logical_off:" << chkpos_in_logical_off << endl;
+        //mlog(IDX_WARN, "%s", oss.str().c_str());
+        return isContain(offset, 
+                         logical_offset.getValByPos(pos),
+                         length.getValByPos(pos));
+    }
+}
+
+// pos has to be in the range
+inline
+off_t IdxSigUnit::getValByPos( const int &pos  ) 
+{
+    off_t locval = 0;
+    int mpos;
+    int col, row;
+    off_t seqsum;
+    off_t val = -1;
+
+    if ( pos == 0 ) {
+	    return init;
+	}
+
+    /* 
+     * The caller should make sure this
+     *
+    if ( seq.size() == 0 || cnt == 0 || pos < 0 || pos >= seq.size()*cnt ) {
+        // that's nothing in seq and you are requesting 
+        // pos > 0. Sorry, no answer for that.
+        ostringstream oss;
+        oss << "In " << __FUNCTION__ << 
+            " Request out of range. Pos is " << pos << endl;
+        mlog (IDX_ERR, "%s", oss.str().c_str());
+        assert(0); // Make it hard for the errors
+    }
+    */
+
+    locval = init;
+	mpos = pos - 1; //the position in the matrix
+	col = mpos % seq.size();
+    //cout << "col" << col << endl;
+	row = mpos / seq.size();
+    //cout << "row" << row << endl;
+
+	if ( ! (row < cnt) ) {
+        assert(0); // Make it hard for the errors
+	}
+	seqsum = sumVector(seq);
+    //cout << "seqsum" << seqsum << endl;
+	locval += seqsum * row;
+	
+	int i = 0;
+	while ( i <= col ) {
+		locval += seq[i];
+        i++;
+	}
+    
+    val = locval;
+	return val;
+}
+
+
+inline
+off_t sumVector( vector<off_t> seq )
+{
+    vector<off_t>::const_iterator iiter;
+    
+    off_t sum = 0;
+    for ( iiter = seq.begin() ;
+          iiter != seq.end() ;
+          iiter++ )
+    {
+        sum += *iiter;
+    }
+    
+    return sum;
+}
+
+inline bool isContain( off_t off, off_t offset, off_t length )
+{
+    //ostringstream oss;
+    //oss << "isContain(" << off << ", " << offset << ", " << length << ")" <<  endl;
+    //mlog(IDX_WARN, "%s", oss.str().c_str());
+    return ( offset <= off && off < offset+length );
+}
+
+
+
+
 #endif
 
