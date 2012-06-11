@@ -32,25 +32,32 @@ class HostEntry
 using namespace std;
 
 int rank, size;
-
-
 MPI_Status stat;
-MPI_File fh;
-void bufferEntries(ifstream &idx_file, int &maxproc);
+
+void bufferEntries(ifstream &idx_file, MPI_File fh);
 
 int main(int argc, char ** argv)
 {
     int rc;
+    ifstream idx_file;
+    MPI_File fh;
+ 
 
     MPI_Init (&argc, &argv);/* starts MPI */
     MPI_Comm_rank (MPI_COMM_WORLD, &rank);/* get current process id */
     MPI_Comm_size (MPI_COMM_WORLD, &size);/* get number of processes */
-    
-    
-    ifstream idx_file;
-    vector<HostEntry> entry_buf;
 
-    printf( "Hello world from process %d of %d\n", rank, size );
+    if ( argc != 3 ) {
+        if ( rank == 0 ) {
+            printf("Usage: mpirun -np num-of-proc-in-map-file %s" 
+                   "mapfile output-file\n", argv[0] );
+        }
+        MPI_Finalize();
+        return 0;
+    }
+
+   
+    printf( "Hello from process %d of %d\n", rank, size );
 
     //all ranks open a file for writing together
     MPI_File_open( MPI_COMM_WORLD, argv[2], 
@@ -65,8 +72,7 @@ int main(int argc, char ** argv)
             cout << "file is not open." << argv[1] << endl;
             exit(-1);
         }
-        int maxproc;
-        bufferEntries(idx_file, maxproc);
+        bufferEntries(idx_file, fh);
         idx_file.close();
     } else {
         // other ranks just receive offset and length from rank 0
@@ -82,22 +88,23 @@ int main(int argc, char ** argv)
                 
                 string buf(entry.length, 'a'+rank);
                 assert(buf.size()==entry.length);
-                MPI_File_write_at(fh, entry.logical_offset,(void *) buf.c_str(), 
-                                  entry.length, MPI_CHAR, &stat);
+                MPI_File_write_at(fh, entry.logical_offset,
+                        (void *) buf.c_str(),  entry.length, MPI_CHAR, &stat);
                 mywrites++;
-                /*
-                if (mywrites % 1024 == 0) {
+                if ( mywrites % 1024 == 0 ) {
                     cout <<".";
                     fflush(stdout);
                 }
-                */
 
+                /*
                 cout << "[" << rank << "] [" << entry.id << "]: " 
                      << entry.logical_offset << ", " 
                      << entry.physical_offset << ", "
                      << entry.length << endl;
+                */
 
             } else {
+                // no entry is coming. This rank is done.
                 break;
             }
         }
@@ -136,7 +143,7 @@ void replaceSubStr( string del, string newstr, string &line )
 }
 
 
-void bufferEntries(ifstream &idx_file, int &maxprocnum)
+void bufferEntries(ifstream &idx_file, MPI_File fh)
 {
     //cout << "i am bufferEntries()" << endl;
     HostEntry h_entry;
@@ -144,7 +151,7 @@ void bufferEntries(ifstream &idx_file, int &maxprocnum)
     vector<HostEntry> entry_buf;
     int i,flag;
 
-    maxprocnum = 0;
+    int maxprocnum = 0;
     for ( i = 0 ; idx_file.good(); i++ ) {
         string line;
         if (  !idx_file.good()
@@ -201,13 +208,6 @@ void bufferEntries(ifstream &idx_file, int &maxprocnum)
         }
 
 
-        //sscanf( tokens[2].c_str(), "%lld", &idx_entry.logical_offset);
-        //sscanf( tokens[3].c_str(), "%lld", &idx_entry.length);
-        //idx_entry.begin_timestamp = atof( tokens[4].c_str() );
-        //idx_entry.end_timestamp = atof( tokens[5].c_str() );
-        //sscanf( tokens[6].c_str(), "%lld", &(idx_entry.logical_tail));
-        //sscanf( tokens[8].c_str(), "%lld", &(idx_entry.physical_offset));
-       
         if ( h_entry.id == 0 ) {
             //if it is rank0's job, just do it
             static int mywrites = 0;
@@ -219,16 +219,16 @@ void bufferEntries(ifstream &idx_file, int &maxprocnum)
                               h_entry.length, MPI_CHAR, &stat);
             mywrites++;
             
+            /*
             cout << "[" << rank << "] [" << h_entry.id << "]: " 
                  << h_entry.logical_offset << ", " 
                  << h_entry.physical_offset << ", "
                  << h_entry.length << endl;
-            /*
+            */
             if (mywrites % 1024 == 0) {
                 cout <<".";
                 fflush(stdout);
             }
-            */
         } else {
             flag = 1;
             MPI_Send(&flag, 1, MPI_INT, h_entry.id, 1, MPI_COMM_WORLD);
