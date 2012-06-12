@@ -35,6 +35,9 @@ namespace MultiLevel {
     class PatternHeadUnit: public PatternUnit
     {
         public:
+            PatternHeadUnit ()
+            {}
+            PatternHeadUnit (off_t x);
             off_t init;
             string show();
     };

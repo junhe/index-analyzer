@@ -1,6 +1,9 @@
 
 #include "patternanalyzer.h"
 
+#include <sstream>
+
+
 namespace MultiLevel {
    
    PatternBlock buildDeltaBlock( PatternBlock &pblock )
@@ -32,6 +35,12 @@ namespace MultiLevel {
    }
 
 
+   PatternHeadUnit::PatternHeadUnit (off_t x)
+       :init(x)
+   {
+   }
+
+
    string PatternHeadUnit::show()
    {
        ostringstream oss;
@@ -45,12 +54,17 @@ namespace MultiLevel {
            oss << *it ;
            if ( it + 1 != seq.end() ) {
                // not the last one
-               oss << ","
+               oss << ",";
            }
        }
        oss << ")";
        return oss.str();
    }
+
+
+
+
+
 }
 
 
