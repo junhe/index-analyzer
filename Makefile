@@ -1,6 +1,6 @@
 SHELL=/bin/sh
 
-OBJS=idxanalyzer.o main.o 
+OBJS=idxanalyzer.o main.o patternanalyzer.o 
 CXXFLAGS=-D_FILE_OFFSET_BITS=64 
 CXX=g++
 INCLUDES=
