@@ -5,7 +5,11 @@
 
 
 namespace MultiLevel {
-   
+  
+
+   ////////////////////////////////////////////////////////////////
+   //  MISC
+   ////////////////////////////////////////////////////////////////
    PatternBlock buildDeltaBlock( PatternBlock &pblock )
    {
        vector<PatternHeadUnit>::iterator it;
@@ -25,21 +29,11 @@ namespace MultiLevel {
 
 
 
-   // input: many PatternUnit (just offset, or PatternHeadUnit)
-   // output: a PatternChunk describing the pattern:
-   //            with two blocks if pattern found
-   //            with only one if not found
-   PatternChunk PatternAnalyzer::generatePatterns( PatternBlock &pblock )
-   {
-
-   }
 
 
-   PatternHeadUnit::PatternHeadUnit (off_t x)
-       :init(x)
-   {
-   }
-
+   ////////////////////////////////////////////////////////////////
+   //  PatternUnit
+   ////////////////////////////////////////////////////////////////
    string PatternUnit::show() 
    {
        ostringstream oss;
@@ -61,6 +55,9 @@ namespace MultiLevel {
    }
 
 
+   ////////////////////////////////////////////////////////////////
+   //  PatternHeadUnit
+   ////////////////////////////////////////////////////////////////
    string PatternHeadUnit::show()
    {
        ostringstream oss;
@@ -69,7 +66,15 @@ namespace MultiLevel {
        return oss.str();       
    }
 
+   PatternHeadUnit::PatternHeadUnit (off_t x)
+       :init(x)
+   {
+   }
 
+   ////////////////////////////////////////////////////////////////
+   //  PatternBlock
+   ////////////////////////////////////////////////////////////////
+   
    string PatternBlock::show()
    {
        ostringstream oss;
@@ -88,6 +93,20 @@ namespace MultiLevel {
        oss << "]";
        return oss.str();
    }
+
+   ////////////////////////////////////////////////////////////////
+   //  PatternAnalyzer
+   ////////////////////////////////////////////////////////////////
+
+   // input: many PatternUnit (just offset, or PatternHeadUnit)
+   // output: a PatternChunk describing the pattern:
+   //            with two blocks if pattern found
+   //            with only one if not found
+   PatternChunk PatternAnalyzer::generatePatterns( PatternBlock &pblock )
+   {
+
+   }
+
 
 }
 
