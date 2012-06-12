@@ -20,7 +20,16 @@ int main(int argc, char ** argv)
     int fd;
     vector<HostEntry> entry_buf;
     IdxSigEntryList sig_entrylist;
-    
+
+    if ( ! ( argc == 2 || argc == 3 ) ) {
+        cerr << "Usage:" << endl
+             << argv[0] << " map-file" << endl
+             << "  Just print the complex pattern to stdout" << endl
+             << argv[0] << " map-file index-output" << endl
+             << "  Print out the pattern to stdout and write it to index-output file" << endl;
+        exit(-1);
+    }
+
 
     idx_file.open(argv[1]);
     if (idx_file.is_open()) {
@@ -31,12 +40,13 @@ int main(int argc, char ** argv)
     }
 
     if ( argc == 3 ) {
-        fd = open( argv[2], O_WRONLY | O_CREAT );
+        fd = open( argv[2], O_WRONLY | O_CREAT, 
+                   S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH );
         if ( fd == -1 ) {
             cerr << "index file is not open" << endl;
             exit(-1);
         } else {
-            cerr << "index file is not open" << endl;
+            cerr << "index file is open" << endl;
         }
     }
 
