@@ -6,6 +6,7 @@
 #include <fcntl.h>
 
 #include "idxanalyzer.h"
+#include "patternanalyzer.h"
 
 using namespace std;
 
@@ -15,6 +16,41 @@ vector<HostEntry> bufferEntries(ifstream &idx_file, int &maxproc);
 
 int main(int argc, char ** argv)
 {
+
+    MultiLevel::PatternBlock pblock;
+
+    int i,j,k;
+    for ( i = 0 ; i < 10 ; i++ ) {
+        pblock.block.push_back( MultiLevel::PatternHeadUnit(1) );
+        pblock.block.push_back( MultiLevel::PatternHeadUnit(3) );
+        pblock.block.push_back( MultiLevel::PatternHeadUnit(8) );
+
+        pblock.block.push_back( MultiLevel::PatternHeadUnit(2) );
+        pblock.block.push_back( MultiLevel::PatternHeadUnit(4) );
+        pblock.block.push_back( MultiLevel::PatternHeadUnit(6) );
+        
+        pblock.block.push_back( MultiLevel::PatternHeadUnit(1) );
+        pblock.block.push_back( MultiLevel::PatternHeadUnit(3) );
+        pblock.block.push_back( MultiLevel::PatternHeadUnit(8) );
+
+        pblock.block.push_back( MultiLevel::PatternHeadUnit(2) );
+        pblock.block.push_back( MultiLevel::PatternHeadUnit(4) );
+        pblock.block.push_back( MultiLevel::PatternHeadUnit(6) );
+
+        pblock.block.push_back( MultiLevel::PatternHeadUnit(1) );
+        pblock.block.push_back( MultiLevel::PatternHeadUnit(3) );
+        pblock.block.push_back( MultiLevel::PatternHeadUnit(8) );
+
+        pblock.block.push_back( MultiLevel::PatternHeadUnit(2) );
+        pblock.block.push_back( MultiLevel::PatternHeadUnit(4) );
+        pblock.block.push_back( MultiLevel::PatternHeadUnit(6) );
+    }
+
+    cout << pblock.show();
+
+    return 0;
+
+
     IdxSignature mysig;
     ifstream idx_file;
     int fd;

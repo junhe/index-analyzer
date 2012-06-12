@@ -40,11 +40,9 @@ namespace MultiLevel {
    {
    }
 
-
-   string PatternHeadUnit::show()
+   string PatternUnit::show() 
    {
        ostringstream oss;
-       oss << init << ",";
        oss << "(";
        vector<off_t>::iterator it;
        for ( it = seq.begin();
@@ -58,12 +56,38 @@ namespace MultiLevel {
            }
        }
        oss << ")";
-       return oss.str();
+       oss << "^" << cnt;
+       return oss.str();       
    }
 
 
+   string PatternHeadUnit::show()
+   {
+       ostringstream oss;
+       oss << init << ",";
+       oss << PatternUnit::show();
+       return oss.str();       
+   }
 
 
+   string PatternBlock::show()
+   {
+       ostringstream oss;
+
+       oss << "[";
+       vector<PatternHeadUnit>::iterator it;
+       for ( it = block.begin();
+             it != block.end();
+             it++ )
+       {
+           oss << it->show();
+           if ( it+1 != block.end() ) {
+               oss << ";";
+           }
+       }
+       oss << "]";
+       return oss.str();
+   }
 
 }
 

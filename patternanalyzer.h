@@ -28,14 +28,19 @@ namespace MultiLevel {
     class PatternUnit: public PatternAbstract
     {
         public:
+            PatternUnit()
+                :cnt(0)
+            {}
             vector<off_t> seq;
             int cnt;
+            string show();
     };
 
     class PatternHeadUnit: public PatternUnit
     {
         public:
             PatternHeadUnit ()
+                :init(0)
             {}
             PatternHeadUnit (off_t x);
             off_t init;
@@ -54,6 +59,7 @@ namespace MultiLevel {
     {
         public:
             vector<PatternHeadUnit> block;
+            string show();
     };
 
     class PatternChunk: public PatternAbstract
