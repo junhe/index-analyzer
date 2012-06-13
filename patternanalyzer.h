@@ -38,6 +38,7 @@ namespace MultiLevel {
             bool isPopSafe( int limit );
             void popDeltas( int n );
             void popChild();
+            void pushChild( DeltaNode *newchild );
             int getNumOfDeltas() const;
     };
 

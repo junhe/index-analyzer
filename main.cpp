@@ -61,7 +61,9 @@ int main(int argc, char ** argv)
     }
     cout << dnode.show() << endl;
     cout << "num of deltas" << dnode.getNumOfDeltas()<< endl;
-    cout << dnode.isPopSafe(100) << endl;
+    cout << dnode.isPopSafe(5) << endl;
+    dnode.popDeltas(5);
+    cout << dnode.show() << endl;
 
     dnode.freeChildren();
 

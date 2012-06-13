@@ -59,6 +59,8 @@ namespace MultiLevel {
         //Cannot find a repeating neighbor
         return Tuple(0, 0, *(p_lookahead_win));
     }
+
+
 /*
     // Input:  vector<T> deltas
     // Output: DeltaNode describing patterns in deltas
@@ -80,33 +82,32 @@ namespace MultiLevel {
                                               win_size );
             //cur_tuple.show();
             if ( cur_tuple.isRepeatingNeighbor() ) {
-                if ( pattern_stack.isPopSafe( cur_tuple.length ) ) {
+                if ( pattern_node.isPopSafe( cur_tuple.length ) ) {
                     //safe
-                    pattern_stack.popElem( cur_tuple.length );
+                    pattern_node.popElem( cur_tuple.length );
 
                     vector<off_t>::const_iterator first, last;
                     first = lookahead_win_start;
                     last = lookahead_win_start + cur_tuple.length;
 
-                    IdxSigUnit pu;
-                    pu.deltas.assign(first, last);
-                    pu.cnt = 2;
-                    pu.init = *(lookahead_win_start_orig - cur_tuple.length);
+                    DeltaNode combo_node;  // TODO: now only work for off_t
+                    combo_node.elements.assign(first, last);
+                    combo_node.cnt = 2;
 
-                    pattern_stack.push( pu );
+                    pattern_node.push( pu );
                     lookahead_win_start += cur_tuple.length;
                     lookahead_win_start_orig += cur_tuple.length;
                 } else {
                     //unsafe
-                    IdxSigUnit pu = pattern_stack.top();
+                    IdxSigUnit pu = pattern_node.top();
 
                     if ( pu.deltas.size() == cur_tuple.length ) {
                         //the subdeltas in lookahead window repeats
                         //the top pattern in stack.
                         //initial remains the same.
                         pu.cnt++;
-                        pattern_stack.popPattern();
-                        pattern_stack.push(pu);
+                        pattern_node.popPattern();
+                        pattern_node.push(pu);
                         pu.init = *lookahead_win_start_orig; //should delete this. keep if only for 
                         //tmp debug.
 
@@ -120,7 +121,7 @@ namespace MultiLevel {
                         pu.deltas.push_back( *lookahead_win_start );
                         pu.init = *lookahead_win_start_orig;
                         pu.cnt = 1;
-                        pattern_stack.push(pu);
+                        pattern_node.push(pu);
                         lookahead_win_start++;
                         lookahead_win_start_orig++;
                     }
@@ -132,7 +133,7 @@ namespace MultiLevel {
                 pu.init = *lookahead_win_start_orig;
                 pu.cnt = 1;
 
-                pattern_stack.push(pu); 
+                pattern_node.push(pu); 
                 lookahead_win_start++;
                 lookahead_win_start_orig++;
             }
@@ -144,39 +145,39 @@ namespace MultiLevel {
             pu.init = *lookahead_win_start_orig;
             pu.cnt = 0;
 
-            pattern_stack.push(pu); 
+            pattern_node.push(pu); 
         }
        
-        SigStack<IdxSigUnit> pattern_stack_compressed;
+        SigStack<IdxSigUnit> pattern_node_compressed;
         vector<IdxSigUnit>::iterator it;
-        for ( it = pattern_stack.the_stack.begin();
-              it != pattern_stack.the_stack.end();
+        for ( it = pattern_node.the_stack.begin();
+              it != pattern_node.the_stack.end();
               it++ )
         {
             it->compressRepeats();
-            if (pattern_stack_compressed.the_stack.empty()) {
+            if (pattern_node_compressed.the_stack.empty()) {
                 //mlog(IDX_WARN, "Empty");
-                pattern_stack_compressed.the_stack.push_back(*it);
+                pattern_node_compressed.the_stack.push_back(*it);
             } else {
                 bool ret;
-                ret = pattern_stack_compressed.the_stack.back().append(*it);
+                ret = pattern_node_compressed.the_stack.back().append(*it);
                 if (ret == false) {
-                    pattern_stack_compressed.the_stack.push_back(*it);
+                    pattern_node_compressed.the_stack.push_back(*it);
                 }
             }
             //ostringstream oss;
-            //oss << pattern_stack_compressed.show();
+            //oss << pattern_node_compressed.show();
             ////mlog(IDX_WARN, "%s", oss.str().c_str());
         }
         
 
-        if ( pattern_stack.size() != orig.size() ) {
+        if ( pattern_node.size() != orig.size() ) {
             ostringstream oss;
-            oss<< "pattern_stack.size() != orig.size() in"
-                   << __FUNCTION__ << pattern_stack.size() 
+            oss<< "pattern_node.size() != orig.size() in"
+                   << __FUNCTION__ << pattern_node.size() 
                    << "," << orig.size() << endl;
             oss << "deltas.size():" << deltas.size() << endl;
-            oss << pattern_stack.show() << endl;
+            oss << pattern_node.show() << endl;
             vector<off_t>::const_iterator it;
             for ( it = orig.begin();
                   it != orig.end();
@@ -189,10 +190,9 @@ namespace MultiLevel {
             exit(-1);
         }
 
-        return pattern_stack_compressed;
+        return pattern_node_compressed;
     }
 */
-
 
     ////////////////////////////////////////////////////////////////
     //  DeltaNode
@@ -200,7 +200,7 @@ namespace MultiLevel {
     bool DeltaNode::isLeaf() const
     {
         // if there's no children, then this node is a leaf
-        return children.size() == 0;
+        return children.size() == 0 ;
     }
 
     string DeltaNode::show() const
@@ -310,7 +310,7 @@ namespace MultiLevel {
         int poped = 0;
         while ( poped < n ) {
             DeltaNode *ptopop = children.back();
-            poped += pchild->getNumOfDeltas();
+            poped += ptopop->getNumOfDeltas();
             popChild();
         }
     }
@@ -322,11 +322,22 @@ namespace MultiLevel {
         if ( children.size() > 0 ) {
             DeltaNode *pchild = children.back();
             pchild->freeChildren();
-            children.pop();
+            children.pop_back();
         }
         return;
     }
 
+    // pushChild will make a node NOT a leaf
+    // If this node is an inner node, calling this is safe
+    // If this node is a leaf:
+    //      If it has elements: NOT SAFE
+    //      If it has no elements: safe. And this function will
+    //                             make this node a inner node.
+    void DeltaNode::pushChild( DeltaNode *newchild )
+    {
+        assert( elements.size() == 0 );
+        children.push_back(newchild);
+    }
 
     ////////////////////////////////////////////////////////////////
     //  PatternUnit
