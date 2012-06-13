@@ -248,23 +248,12 @@ namespace MultiLevel {
         vector<DeltaNode*>::const_iterator it;
         while ( children.size() > 0 )
         {
-            DeltaNode *pchild = children.back();
-           
-            /*
-            //debug
-            if ( pchild->elements.size() > 0 ) {
-                cout << "ready to delete:" << pchild->elements[0] << endl;
-            }
-            */
-
-            pchild->freeChildren();
-            // Noe pchild has no child and becomes a leaf
-            delete pchild;
-            children.pop_back();
+            popChild();   
         }
         return;
     }
 
+    // Caller to make sure it is a leaf
     void DeltaNode::pushElement( off_t elem )
     {
         assert( isLeaf() ); // only leaf can have elements
@@ -311,6 +300,33 @@ namespace MultiLevel {
             return total;
         }
     }
+
+    // pop out n expanded deltas out
+    // Caller has to make sure it is safe by calling isPopSafe()
+    void DeltaNode::popDeltas( int n )
+    {
+        assert( isPopSafe(n) );
+        
+        int poped = 0;
+        while ( poped < n ) {
+            DeltaNode *ptopop = children.back();
+            poped += pchild->getNumOfDeltas();
+            popChild();
+        }
+    }
+
+    // pop out the last child in children[]
+    // free its space
+    void DeltaNode::popChild()
+    {
+        if ( children.size() > 0 ) {
+            DeltaNode *pchild = children.back();
+            pchild->freeChildren();
+            children.pop();
+        }
+        return;
+    }
+
 
     ////////////////////////////////////////////////////////////////
     //  PatternUnit

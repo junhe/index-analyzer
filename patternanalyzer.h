@@ -35,7 +35,9 @@ namespace MultiLevel {
             string show() const;
             void freeChildren();
             void pushElement( off_t elem );
-            bool isPopSafe( int length );
+            bool isPopSafe( int limit );
+            void popDeltas( int n );
+            void popChild();
             int getNumOfDeltas() const;
     };
 
