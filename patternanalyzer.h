@@ -18,7 +18,7 @@ namespace MultiLevel {
         */
     };
 
-
+    // It is a tree structure used to describe patterns
     class DeltaNode: public PatternAbstract {
         public:
             DeltaNode()
@@ -116,6 +116,24 @@ namespace MultiLevel {
     {
         public:
             PatternChunk generatePatterns( PatternBlock &pblock );
+    };
+
+    class Tuple {
+        public:
+            int offset; //note that this is not the 
+            // offset when accessing file. But
+            // the offset in LZ77 algorithm
+            int length; //concept in LZ77
+            off_t next_symbol;
+
+            Tuple() {}
+            Tuple(int o, int l, off_t n); 
+
+            void put(int o, int l, off_t n);
+            bool operator== (const Tuple other);
+            // Tell if the repeating sequences are next to each other
+            bool isRepeatingNeighbor();
+            string show(); 
     };
 
 }
