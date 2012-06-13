@@ -59,18 +59,15 @@ namespace MultiLevel {
         //Cannot find a repeating neighbor
         return Tuple(0, 0, *(p_lookahead_win));
     }
-
 /*
-
     // Input:  vector<T> deltas
     // Output: DeltaNode describing patterns in deltas
     //
     // deltas is got by a sequence of inits. Later the output can be
     // used to combine inits with deltas
     // This function finds out the pattern by LZ77 modification
-    DeltaNode findPattern( vector<off_t> const &deltas, int winsize )
+    DeltaNode findPattern( vector<off_t> const &deltas, int win_size )
     {
-        // pointer(iterator) to the lookahead window, bot should move together
         vector<off_t>::const_iterator lookahead_win_start, 
         DeltaNode pattern_node;
 
@@ -78,7 +75,9 @@ namespace MultiLevel {
         
         while ( lookahead_win_start != deltas.end() ) {
             //lookahead window is not empty
-            Tuple cur_tuple = searchNeighbor( deltas, lookahead_win_start );
+            Tuple cur_tuple = searchNeighbor( deltas, 
+                                              lookahead_win_start, 
+                                              win_size );
             //cur_tuple.show();
             if ( cur_tuple.isRepeatingNeighbor() ) {
                 if ( pattern_stack.isPopSafe( cur_tuple.length ) ) {
@@ -195,10 +194,6 @@ namespace MultiLevel {
 */
 
 
-
-
-
-
     ////////////////////////////////////////////////////////////////
     //  DeltaNode
     ////////////////////////////////////////////////////////////////
@@ -274,6 +269,36 @@ namespace MultiLevel {
     {
         assert( isLeaf() ); // only leaf can have elements
         elements.push_back(elem);
+    }
+
+    bool DeltaNode::isPopSafe( int length )
+    {
+        // length is the number of deltas to pop out
+        //if ( isLeaf() )
+    }
+
+    // To get how many deltas is in this node
+    // if all patterns in this node is expanded
+    int DeltaNode::getNumOfDeltas() const
+    {
+        
+        if ( this->isLeaf() ) {
+            int total = 0;
+            total = elements.size() * cnt;
+            return total;
+        } else {
+            int total = 0;
+            vector<DeltaNode *>::const_iterator it;
+            
+            for ( it =  children.begin() ;
+                  it != children.end() ;
+                  it++ )
+            {
+                total += (*it)->getNumOfDeltas();
+            }
+            total *= cnt; // the whole pattern may repeat
+            return total;
+        }
     }
 
     ////////////////////////////////////////////////////////////////

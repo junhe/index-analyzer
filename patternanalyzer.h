@@ -35,6 +35,8 @@ namespace MultiLevel {
             string show() const;
             void freeChildren();
             void pushElement( off_t elem );
+            bool isPopSafe( int length );
+            int getNumOfDeltas() const;
     };
 
 
@@ -133,7 +135,7 @@ namespace MultiLevel {
             bool operator== (const Tuple other);
             // Tell if the repeating sequences are next to each other
             bool isRepeatingNeighbor();
-            string show(); 
+            string show();
     };
 
 }
