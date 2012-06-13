@@ -31,6 +31,7 @@ namespace MultiLevel {
                                           // children or elements must be 0
             bool isLeaf() const;
             string show() const;
+            void freeChildren();
     };
 
 

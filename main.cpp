@@ -51,12 +51,12 @@ int main(int argc, char ** argv)
     MultiLevel::DeltaNode dnode;
     for ( i = 0 ; i < 4 ; i++ ) {
         MultiLevel::DeltaNode* dleaf = new MultiLevel::DeltaNode;
-        dleaf->elements.push_back(1);
+        dleaf->elements.push_back(i);
 
         dnode.children.push_back(dleaf);
     }
     cout << dnode.show();
-
+    dnode.freeChildren();
 
     return 0;
 
