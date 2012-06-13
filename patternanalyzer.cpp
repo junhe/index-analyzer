@@ -271,10 +271,21 @@ namespace MultiLevel {
         elements.push_back(elem);
     }
 
-    bool DeltaNode::isPopSafe( int length )
+    bool DeltaNode::isPopSafe( int limit )
     {
-        // length is the number of deltas to pop out
-        //if ( isLeaf() )
+        // limit is the number of deltas to pop out
+        assert( !this->isLeaf() ); //assume this is not a leaf
+                                   //since it is used for storing patterns
+        vector<DeltaNode *>::reverse_iterator rit;
+        int total = 0;
+
+        rit = children.rbegin();
+        while ( rit != children.rend() && total < limit ) 
+        {
+            total += (*rit)->getNumOfDeltas();
+            rit++;
+        }
+        return total == limit; //exactly limit of deltas can be poped out
     }
 
     // To get how many deltas is in this node

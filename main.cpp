@@ -59,7 +59,10 @@ int main(int argc, char ** argv)
 
         dnode.children.push_back(dleaf);
     }
-    cout << dnode.show();
+    cout << dnode.show() << endl;
+    cout << "num of deltas" << dnode.getNumOfDeltas()<< endl;
+    cout << dnode.isPopSafe(100) << endl;
+
     dnode.freeChildren();
 
     return 0;
