@@ -28,13 +28,13 @@ namespace MultiLevel {
     ////////////////////////////////////////////////////////////////
     //  DeltaNode
     ////////////////////////////////////////////////////////////////
-    bool DeltaNode::isLeaf()
+    bool DeltaNode::isLeaf() const
     {
         // if there's no children, then this node is a leaf
         return children.size() == 0;
     }
 
-    string DeltaNode::show()
+    string DeltaNode::show() const
     {
         ostringstream oss;
 
@@ -51,8 +51,24 @@ namespace MultiLevel {
                 }
             }
             oss << ")" ;
+            oss << "^" << cnt;
+        } else {
+            // Not a leaf, recurse
+            oss << "[";
+            vector<DeltaNode*>::const_iterator it;
+            for ( it =  children.begin() ;
+                  it != children.end()   ;
+                  it++ )
+            {
+                oss << (*it)->show();
+                if ( it+1 != children.end() ) {
+                    oss << ";";
+                }
+            }
+            oss << "]";
+            oss << "^" << cnt;
         }
-        oss << "^" << cnt;
+
         return oss.str();
     }
 

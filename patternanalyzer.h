@@ -29,8 +29,8 @@ namespace MultiLevel {
             vector<DeltaNode *> children;
             vector<off_t> elements;       // one of sizes of 
                                           // children or elements must be 0
-            bool isLeaf();
-            string show();
+            bool isLeaf() const;
+            string show() const;
     };
 
 

@@ -49,7 +49,12 @@ int main(int argc, char ** argv)
     //cout << pblock.show();
 
     MultiLevel::DeltaNode dnode;
-    dnode.elements.push_back(1);
+    for ( i = 0 ; i < 4 ; i++ ) {
+        MultiLevel::DeltaNode* dleaf = new MultiLevel::DeltaNode;
+        dleaf->elements.push_back(1);
+
+        dnode.children.push_back(dleaf);
+    }
     cout << dnode.show();
 
 
