@@ -32,6 +32,7 @@ namespace MultiLevel {
             bool isLeaf() const;
             string show() const;
             void freeChildren();
+            void pushElement( off_t elem );
     };
 
 

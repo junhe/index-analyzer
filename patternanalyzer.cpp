@@ -96,6 +96,12 @@ namespace MultiLevel {
         return;
     }
 
+    bool DeltaNode::pushElement( off_t elem )
+    {
+        assert( isLeaf() ); // only leaf can have elements
+        elements.push_back(elem);
+    }
+
     ////////////////////////////////////////////////////////////////
     //  PatternUnit
     ////////////////////////////////////////////////////////////////
