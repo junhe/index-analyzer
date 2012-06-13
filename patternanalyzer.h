@@ -18,12 +18,29 @@ namespace MultiLevel {
         */
     };
 
+
+    class DeltaNode: public PatternAbstract {
+        public:
+            DeltaNode()
+                :cnt(1)
+            {}
+
+            int cnt; // how many times the node repeats
+            vector<DeltaNode *> children;
+            vector<off_t> elements;       // one of sizes of 
+                                          // children or elements must be 0
+            bool isLeaf();
+            string show();
+    };
+
+
     ///////////////////////////////////////////////////////////
     // Pattern Unit
     ///////////////////////////////////////////////////////////
     class PatternUnitAbstract: public PatternAbstract
     {
     };
+
 
     class PatternUnit: public PatternAbstract
     {
@@ -62,10 +79,17 @@ namespace MultiLevel {
             string show();
     };
 
+    // A pattern chunk is a pattern with multi levels
     class PatternChunk: public PatternAbstract
     {
         public:
-            vector<PatternBlock> chunks;
+            vector<PatternBlock> chunk;
+    };
+
+    class PatternChunkList: public PatternAbstract
+    {
+        public:
+            vector<PatternChunk> list; 
     };
     
     class PatternEntry: public PatternAbstract
@@ -78,7 +102,7 @@ namespace MultiLevel {
             PatternChunk physical_offset;
     };
 
-    class PatternList: public PatternAbstract
+    class PatternEntryList: public PatternAbstract
     {
         public:
             vector<PatternEntry> list;

@@ -46,7 +46,12 @@ int main(int argc, char ** argv)
         pblock.block.push_back( MultiLevel::PatternHeadUnit(6) );
     }
 
-    cout << pblock.show();
+    //cout << pblock.show();
+
+    MultiLevel::DeltaNode dnode;
+    dnode.elements.push_back(1);
+    cout << dnode.show();
+
 
     return 0;
 
