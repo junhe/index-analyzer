@@ -203,7 +203,6 @@ namespace MultiLevel {
                     lookahead_win_start += cur_tuple.length;
                 } else {
                     //unsafe
-
                     assert(pattern_node->children.size() > 0); // window moved,
                                                                // so some patterns must be in children
                     DeltaNode *lastchild = pattern_node->children.back();
@@ -348,7 +347,7 @@ namespace MultiLevel {
         for ( ; i != p_lookahead_win ; i++ ) {
             int search_length = p_lookahead_win - i;
             for ( j = 0 ; j < search_length ; j++ ) {
-                if ( *(i+j) != *(p_lookahead_win + j) ) { //TODO: need to impliment comparison
+                if ( !isEqual( *(i+j), *(p_lookahead_win + j)) ) { //TODO: need to impliment comparison
                     break;
                 }
             }
