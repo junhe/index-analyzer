@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include <assert.h>
 
+#include "idxanalyzer.h"
+
 using namespace std;
 
 namespace MultiLevel {
@@ -41,7 +43,6 @@ namespace MultiLevel {
     class DeltaNode: public PatternAbstract {
         public:
             DeltaNode();
-            DeltaNode( vector<off_t> seq );
             ~DeltaNode();
             void init();
 
@@ -73,6 +74,18 @@ namespace MultiLevel {
             off_t getDeltaSumUtilPos( const int pos );
             off_t getDeltaSum();
             int getNumOfLeaves();
+            void buildPatterns( vector<off_t> seq );
+    };
+
+    class PatternCombo {
+        public:
+            DeltaNode logical_offset;
+            DeltaNode length;
+            DeltaNode physical_offset;
+        
+            void buildFromHostEntries( const vector<HostEntry> &entry_buf, 
+                                       const pid_t &proc );
+            string show();
     };
 
 

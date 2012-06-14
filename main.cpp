@@ -24,13 +24,15 @@ int main(int argc, char ** argv)
           i++ )
     {
         seq.push_back(1);
-        seq.push_back(2);
-        seq.push_back(3);
     }
-    seq.push_back(3);
 
-    MultiLevel::DeltaNode dnode(seq);
+    MultiLevel::DeltaNode dnode;
+    dnode.buildPatterns(seq);
     cout << dnode.show() << endl;
+
+    for ( i = 0 ; i < 1 ; i++ ) {
+        cout << i << ":" << dnode.recoverPos(i) << endl;
+    }
 
     return 0;
 

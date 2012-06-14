@@ -350,7 +350,7 @@ namespace MultiLevel {
     //                    [Delta...] 
     //                                [Delta...] ...
     // [] is a child. [init] is the only place that can be splitted.
-    DeltaNode::DeltaNode( vector<off_t> seq )
+    void DeltaNode::buildPatterns( vector<off_t> seq )
     {
         init();
         vector<off_t> deltas;
@@ -583,6 +583,43 @@ namespace MultiLevel {
     DeltaNode::~DeltaNode() 
     {
         freeChildren();
+    }
+
+    ////////////////////////////////////////////////////////////////
+    //  PatternCombo
+    ////////////////////////////////////////////////////////////////
+    void PatternCombo::buildFromHostEntries( const vector<HostEntry> &entry_buf, 
+                                             const pid_t &proc )
+    {
+        vector<off_t> h_logical_off, h_length, h_physical_off; 
+        vector<HostEntry>::const_iterator iter;
+        
+        for ( iter = entry_buf.begin() ; 
+                iter != entry_buf.end() ;
+                iter++ )
+        {
+            if ( iter->id != proc ) {
+                continue;
+            }
+
+            h_logical_off.push_back(iter->logical_offset);
+            h_length.push_back(iter->length);
+            h_physical_off.push_back(iter->physical_offset);
+        }
+        
+        this->logical_offset.buildPatterns( h_logical_off );
+        this->length.buildPatterns( h_length );
+        this->physical_offset.buildPatterns( h_physical_off );
+
+    }
+
+    string PatternCombo::show()
+    {
+        ostringstream oss;
+        oss << "LOGICAL_OFFSET :" << logical_offset.show() << endl;
+        oss << "LENGTH         :" << length.show() << endl;
+        oss << "PHYSICAL_OFFSET:" << physical_offset.show() << endl;
+        return oss.str();
     }
 
 
