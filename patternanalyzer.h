@@ -16,6 +16,21 @@ namespace MultiLevel {
     #define INNER  'I'
     typedef int32_t header_t;
 
+    class LeafTuple {
+        public:
+            int num_leaves;
+            int num_deltas;
+            off_t leaf_delta_sum;
+
+            LeafTuple(int a, int b, off_t c)
+                :num_leaves(a),
+                 num_deltas(b),
+                 leaf_delta_sum(c)
+            {}
+                
+    };
+
+
     class PatternAbstract {
         /*
         virtual string show() = 0;
@@ -55,10 +70,11 @@ namespace MultiLevel {
                          vector<off_t>::const_iterator last );
             string serialize();
             void deSerialize( string buf );
-            off_t recoverPos( int pos );
-            DeltaNode *getLeafByPos( int pos, int &leaf_pos );
-            off_t getDeltaSumUtilPos( int pos );
+            off_t recoverPos( const int pos );
+            LeafTuple getLeafDeltaSumByPos( const int pos );
+            off_t getDeltaSumUtilPos( const int pos );
             off_t getDeltaSum();
+            int getNumOfLeaves();
     };
 
 

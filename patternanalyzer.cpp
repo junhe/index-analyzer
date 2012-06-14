@@ -2,6 +2,7 @@
 #include "patternanalyzer.h"
 
 #include <string.h>
+#include <stack>
 
 namespace MultiLevel {
     ////////////////////////////////////////////////////////////////
@@ -382,20 +383,82 @@ namespace MultiLevel {
         return;
     }
 
-    // input is the pos of delta
+    // input is the pos of a delta
     // leaf_pos is the output, it is the position of the leaf
-    DeltaNode *DeltaNode::getLeafByPos( int pos, int &leaf_pos )
+    // it returns the delta sun util pos in the leaf
+    LeafTuple DeltaNode::getLeafDeltaSumByPos( const int pos )
     {
-         
+        LeafTuple tup(0,0,0);
+        int rpos = pos;
+        assert( rpos < this->getNumOfDeltas() );
+
+        if ( isLeaf() ) {
+        
+        } else {
+            // [..][..]...
+            off_t sum = 0;
+            int num_child_deltas = this->getNumOfDeltas()/cnt;
+            int num_child_leaves = this->getNumOfLeaves()/cnt;
+
+            assert( num_child_deltas > 0 );
+            
+            int col = rpos % num_child_deltas;
+            int row = rpos / num_child_deltas;
+
+            if ( row > 0 ) {
+                tup.num_leaves = (this->getNumOfLeaves()/cnt) * row;
+                tup.num_deltas = (this->getNumOfDeltas()/cnt) * row;
+            }
+
+            vector<DeltaNode *>::const_iterator it;
+            for ( it = children.begin() ;
+                  it != children.end()  ;
+                  it++ )
+            {
+                int sizeofchild = (*it)->getNumOfDeltas();
+                if ( col < sizeofchild ) {
+                    LeafTuple ltup = (*it)->getLeafDeltaSumByPos( col );
+                    tup.num_deltas += ltup.num_deltas;
+                    tup.num_leaves += ltup.num_leaves;
+                    tup.leaf_delta_sum = ltup.leaf_delta_sum;
+                    break;
+                } else {
+                    tup.num_deltas += (*it)->getNumOfDeltas();
+                    tup.num_leaves += (*it)->getNumOfLeaves();
+
+                    col -= sizeofchild;
+                }          
+            }
+            return tup;
+        }
     }
 
+    int DeltaNode::getNumOfLeaves()
+    {
+        int sumleaves = 0;
+
+        if ( isLeaf() ) {
+            return 1;
+        } else {
+            vector<DeltaNode *>::const_iterator it;
+            
+            for ( it = children.begin() ;
+                  it != children.end()  ;
+                  it++ )
+            {
+                sumleaves += (*it)->getNumOfLeaves();
+            }
+
+            return sumleaves * cnt;
+        }
+    }
 
     off_t DeltaNode::getDeltaSumUtilPos( const int pos )
     {
         int rpos = pos;
+        assert( rpos < this->getNumOfDeltas() );
 
         if ( isLeaf() ) {
-            assert ( rpos < elements.size() * cnt ); 
             off_t delta_sum = 0;
             int col = rpos % elements.size();
             int row = rpos / elements.size();
@@ -410,14 +473,14 @@ namespace MultiLevel {
             return elem_sum * row + last_row_sum; 
         } else {
             off_t sum = 0;
-            assert( rpos < this->getNumOfDeltas() );
             int num_child_deltas = this->getNumOfDeltas()/cnt;
             assert( num_child_deltas > 0 );
             int col = rpos % num_child_deltas;
             int row = rpos / num_child_deltas;
 
             if ( row > 0 ) {
-                off_t childsum = 0;
+                off_t childsum = this->getDeltaSum() / cnt; //TODO: justify this
+                /*
                 vector<DeltaNode *>::const_iterator cit;
                 for ( cit = children.begin() ;
                       cit != children.end() ;
@@ -425,6 +488,7 @@ namespace MultiLevel {
                 {
                     childsum += (*cit)->getDeltaSum();
                 }
+                */
                 sum += childsum * row;
             }
 
@@ -463,9 +527,25 @@ namespace MultiLevel {
         }
     }
 
-    // this DeltaNode must have format: [init...][delta...]
-    off_t DeltaNode::recoverPos( int pos )
+    // this DeltaNode must have format: [init...][delta...] [delta...]...[last]
+    off_t DeltaNode::recoverPos( const int pos )
     {
+        // find the ID of leaf who have the pos'th delta in it in last
+        // pos = id
+        // last--
+
+        vector<off_t> deltalist;
+        int leafpos = 0;
+        vector<DeltaNode *>::const_reverse_iterator rit;
+        for ( rit =  children.rbegin() ;
+              rit != children.rend()   ;
+              rit++ )
+        {
+            if ( rit + 1 == children.rend() ) {
+                // this is the DeltaNode of [init...]
+
+            }
+        }
     }
 
 
