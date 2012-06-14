@@ -246,7 +246,7 @@ namespace MultiLevel {
             } else {
                 //(0,0,x)
                 DeltaNode *newchild = new DeltaNode;
-                newchild->elements.push_back( cur_tuple.next_symbol );
+                newchild->push( cur_tuple.next_symbol );
                 newchild->cnt = 1;
                 pattern_node->pushChild(newchild);
                 
