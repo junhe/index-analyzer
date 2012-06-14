@@ -7,6 +7,22 @@ namespace MultiLevel {
     ////////////////////////////////////////////////////////////////
     //  MISC
     ////////////////////////////////////////////////////////////////
+
+    vector<off_t> buildDeltas( vector<off_t> seq ) 
+    {
+        vector<off_t>::iterator it;
+        vector<off_t> deltas;
+        for ( it = seq.begin() ; it != seq.end() ; it++ )
+        {
+            if ( it > seq.begin() ) {
+                deltas.push_back( *it - *(it-1) );
+            }
+        }
+        //cout << "in builddeltas: " << seq.size() << " " << deltas.size() << endl; 
+        return deltas;
+    }
+
+    
     PatternBlock buildDeltaBlock( PatternBlock &pblock )
     {
         vector<PatternHeadUnit>::iterator it;
