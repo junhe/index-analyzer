@@ -355,11 +355,12 @@ namespace MultiLevel {
         int pos = 0;
         inits->pushElement( seq[pos] );
         vector<DeltaNode *>::const_iterator it;
-        for ( it =  children.begin() ;
-              it != children.end() ;
+        for ( it =  deltas_pattern->children.begin() ;
+              it != deltas_pattern->children.end() ;
               it++ )
         {
             pos += (*it)->getNumOfDeltas();
+            cout << pos << "<" << seq.size() << endl;
             assert( pos < seq.size() );
             inits->pushElement( seq[pos] );
         }
