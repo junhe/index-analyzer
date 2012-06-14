@@ -386,18 +386,22 @@ namespace MultiLevel {
     // input is the pos of a delta
     // leaf_pos is the output, it is the position of the leaf
     // it returns the delta sun util pos in the leaf
-    LeafTuple DeltaNode::getLeafDeltaSumByPos( const int pos )
+    LeafTuple DeltaNode::getLeafTupleByPos( const int pos )
     {
-        LeafTuple tup(0,0,0);
+        LeafTuple tup(0,0);
         int rpos = pos;
         assert( rpos < this->getNumOfDeltas() );
 
         if ( isLeaf() ) {
-        
+            // hit what you want
+            tup.leaf_delta_sum = this->getDeltaSumUtilPos(rpos);
+            tup.num_leaves = 0; // tup.num_leaves can be used as an index
+                                // leaves[ num_leaves ] is this one
+            return tup;
         } else {
             // [..][..]...
-            off_t sum = 0;
             int num_child_deltas = this->getNumOfDeltas()/cnt;
+            
             int num_child_leaves = this->getNumOfLeaves()/cnt;
 
             assert( num_child_deltas > 0 );
@@ -407,7 +411,6 @@ namespace MultiLevel {
 
             if ( row > 0 ) {
                 tup.num_leaves = (this->getNumOfLeaves()/cnt) * row;
-                tup.num_deltas = (this->getNumOfDeltas()/cnt) * row;
             }
 
             vector<DeltaNode *>::const_iterator it;
@@ -417,13 +420,11 @@ namespace MultiLevel {
             {
                 int sizeofchild = (*it)->getNumOfDeltas();
                 if ( col < sizeofchild ) {
-                    LeafTuple ltup = (*it)->getLeafDeltaSumByPos( col );
-                    tup.num_deltas += ltup.num_deltas;
+                    LeafTuple ltup = (*it)->getLeafTupleByPos( col );
                     tup.num_leaves += ltup.num_leaves;
                     tup.leaf_delta_sum = ltup.leaf_delta_sum;
                     break;
                 } else {
-                    tup.num_deltas += (*it)->getNumOfDeltas();
                     tup.num_leaves += (*it)->getNumOfLeaves();
 
                     col -= sizeofchild;

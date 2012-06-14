@@ -16,37 +16,7 @@ vector<HostEntry> bufferEntries(ifstream &idx_file, int &maxproc);
 
 int main(int argc, char ** argv)
 {
-
-    MultiLevel::PatternBlock pblock;
-
     int i,j,k;
-    for ( i = 0 ; i < 10 ; i++ ) {
-        pblock.block.push_back( MultiLevel::PatternHeadUnit(1) );
-        pblock.block.push_back( MultiLevel::PatternHeadUnit(3) );
-        pblock.block.push_back( MultiLevel::PatternHeadUnit(8) );
-
-        pblock.block.push_back( MultiLevel::PatternHeadUnit(2) );
-        pblock.block.push_back( MultiLevel::PatternHeadUnit(4) );
-        pblock.block.push_back( MultiLevel::PatternHeadUnit(6) );
-        
-        pblock.block.push_back( MultiLevel::PatternHeadUnit(1) );
-        pblock.block.push_back( MultiLevel::PatternHeadUnit(3) );
-        pblock.block.push_back( MultiLevel::PatternHeadUnit(8) );
-
-        pblock.block.push_back( MultiLevel::PatternHeadUnit(2) );
-        pblock.block.push_back( MultiLevel::PatternHeadUnit(4) );
-        pblock.block.push_back( MultiLevel::PatternHeadUnit(6) );
-
-        pblock.block.push_back( MultiLevel::PatternHeadUnit(1) );
-        pblock.block.push_back( MultiLevel::PatternHeadUnit(3) );
-        pblock.block.push_back( MultiLevel::PatternHeadUnit(8) );
-
-        pblock.block.push_back( MultiLevel::PatternHeadUnit(2) );
-        pblock.block.push_back( MultiLevel::PatternHeadUnit(4) );
-        pblock.block.push_back( MultiLevel::PatternHeadUnit(6) );
-    }
-
-    //cout << pblock.show();
 
     MultiLevel::DeltaNode dnode;
     for ( i = 0 ; i < 4 ; i++ ) {
@@ -58,21 +28,6 @@ int main(int argc, char ** argv)
 
         dnode.pushChild(dleaf);
     }
-    cout << dnode.show() << endl;
-    cout << "num of deltas" << dnode.getNumOfDeltas()<< endl;
-    
-    cout << "before serial" << endl;
-    cout << dnode.show() << endl;
-
-    string buf = dnode.serialize();
-
-    MultiLevel::DeltaNode fnode;
-    fnode.deSerialize(buf);
-
-    cout << "after serial" << endl;
-    cout << fnode.show();
-
-    cout << (dnode.serialize() == fnode.serialize()) << endl;
 
 
     vector<off_t> seq;
@@ -86,20 +41,32 @@ int main(int argc, char ** argv)
     }
     seq.push_back(3);
 
-
+    cout << "_---_____________________________" << endl;
     MultiLevel::DeltaNode *pattern2 
-        = MultiLevel::findPattern(seq, 5);
-
-    pattern2->show();
-    return 0;
-
-    cout << "input " << endl;
-    cout << dnode.show() << endl;
+        = new MultiLevel::DeltaNode( seq );
+   
     MultiLevel::DeltaNode *pattern 
         = MultiLevel::findPattern(dnode.children, 5);
     
     cout << "pattern show" << endl;
     cout << pattern->show() << endl;
+    cout << "deltasum" << endl;
+    cout << pattern->getDeltaSum() << endl;
+
+    for ( i = 0 ; i < 16 ; i++ ) {
+        cout << i << ":" << pattern->getDeltaSumUtilPos(i) << endl;
+    }
+
+    cout << "____________________________________________________________" << endl;
+
+    for ( i = 0 ; i < 16 ; i++ ) {
+        MultiLevel::LeafTuple t = pattern->getLeafTupleByPos(i);
+        cout << "i:" << i << endl;
+        cout << "Leave index:" << t.num_leaves << endl;
+        cout << "Delta sum:" << t.leaf_delta_sum << endl;
+        cout << "-----------------" << endl;
+    }
+
 
     dnode.freeChildren();
 

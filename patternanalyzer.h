@@ -19,15 +19,12 @@ namespace MultiLevel {
     class LeafTuple {
         public:
             int num_leaves;
-            int num_deltas;
             off_t leaf_delta_sum;
 
-            LeafTuple(int a, int b, off_t c)
+            LeafTuple(int a, off_t c)
                 :num_leaves(a),
-                 num_deltas(b),
                  leaf_delta_sum(c)
             {}
-                
     };
 
 
@@ -71,7 +68,7 @@ namespace MultiLevel {
             string serialize();
             void deSerialize( string buf );
             off_t recoverPos( const int pos );
-            LeafTuple getLeafDeltaSumByPos( const int pos );
+            LeafTuple getLeafTupleByPos( const int pos );
             off_t getDeltaSumUtilPos( const int pos );
             off_t getDeltaSum();
             int getNumOfLeaves();
