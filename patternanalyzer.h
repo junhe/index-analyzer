@@ -18,11 +18,11 @@ namespace MultiLevel {
 
     class LeafTuple {
         public:
-            int num_leaves;
+            int leaf_index;
             off_t leaf_delta_sum;
 
             LeafTuple(int a, off_t c)
-                :num_leaves(a),
+                :leaf_index(a),
                  leaf_delta_sum(c)
             {}
     };
@@ -42,6 +42,7 @@ namespace MultiLevel {
         public:
             DeltaNode();
             DeltaNode( vector<off_t> seq );
+            ~DeltaNode();
             void init();
 
             int cnt; // how many times the node repeats
@@ -218,11 +219,11 @@ namespace MultiLevel {
             Tuple<TYPE> cur_tuple = searchNeighbor( deltas, 
                                               lookahead_win_start, 
                                               win_size );
-            cout << "TUPLE:" << cur_tuple.show() << endl;
+            //cout << "TUPLE:" << cur_tuple.show() << endl;
             if ( cur_tuple.isRepeatingNeighbor() ) {
                 if ( pattern_node->isPopSafe( cur_tuple.length ) ) {
                     //safe
-                    cout << "--safe" << endl;
+                    //cout << "--safe" << endl;
                     pattern_node->popDeltas( cur_tuple.length );
 
                     typename vector<TYPE>::const_iterator first, last;
@@ -237,7 +238,7 @@ namespace MultiLevel {
                     lookahead_win_start += cur_tuple.length;
                 } else {
                     //unsafe
-                    cout << "--unsafe" << endl;
+                    //cout << "--unsafe" << endl;
                     assert(pattern_node->children.size() > 0); // window moved,
                                                                // so some patterns must be in children
                     DeltaNode *lastchild = pattern_node->children.back();
@@ -257,27 +258,27 @@ namespace MultiLevel {
                             pattern_length += (*it)->getNumOfDeltas();
                         }
                     }
-                    cout << "--- pattern_length:" << pattern_length << endl;
+                    //cout << "--- pattern_length:" << pattern_length << endl;
                     
                     DeltaNode tmpnode;
                     tmpnode.assign( lookahead_win_start,
                                     lookahead_win_start + cur_tuple.length);
                      
-                    cout << "--- in window length:" << tmpnode.getNumOfDeltas() << endl;
+                    //cout << "--- in window length:" << tmpnode.getNumOfDeltas() << endl;
                     int lookwin_delta_len = tmpnode.getNumOfDeltas();
                     if ( lookwin_delta_len == pattern_length ) { //TODO: need to justify this
                         //the subdeltas in lookahead window repeats
                         //the last pattern in pattern_node
                         lastchild->cnt +=  lookwin_delta_len/pattern_length;
-                        cout << "---- repeats last pattern. add " 
-                             << (lookwin_delta_len/pattern_length) << "to last pattern" << endl;
+                        //cout << "---- repeats last pattern. add " 
+                        //     << (lookwin_delta_len/pattern_length) << "to last pattern" << endl;
 
                         lookahead_win_start += cur_tuple.length;
                     } else {
                         //cannot pop out cur_tuple.length elems without
                         //totally breaking any pattern.
                         //So we simply add one elem to the stack
-                        cout << "---- cannot pop out. add new" << endl;
+                        //cout << "---- cannot pop out. add new" << endl;
                         DeltaNode *newchild = new DeltaNode;
                         newchild->push( *lookahead_win_start );
                         newchild->cnt = 1;
@@ -289,7 +290,7 @@ namespace MultiLevel {
                 }
             } else {
                 //(0,0,x)
-                cout << "-no repeating neighor" << endl;
+                //cout << "-no repeating neighor" << endl;
                 DeltaNode *newchild = new DeltaNode;
                 newchild->push( cur_tuple.next_symbol );
                 newchild->cnt = 1;
@@ -297,7 +298,7 @@ namespace MultiLevel {
                 
                 lookahead_win_start++;
             }
-            cout << pattern_node->show() << endl;
+            //cout << pattern_node->show() << endl;
         }
       
         /*

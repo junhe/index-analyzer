@@ -376,7 +376,7 @@ namespace MultiLevel {
               it++ )
         {
             pos += (*it)->getNumOfDeltas();
-            cout << pos << "<" << seq.size() << endl;
+            //cout << pos << "<" << seq.size() << endl;
             assert( pos < seq.size() );
             inits->pushElement( seq[pos] );
         }
@@ -395,8 +395,8 @@ namespace MultiLevel {
         if ( isLeaf() ) {
             // hit what you want
             tup.leaf_delta_sum = this->getDeltaSumUtilPos(rpos);
-            tup.num_leaves = 0; // tup.num_leaves can be used as an index
-                                // leaves[ num_leaves ] is this one
+            tup.leaf_index = 0; // tup.leaf_index can be used as an index
+                                // leaves[ leaf_index ] is this one
             return tup;
         } else {
             // [..][..]...
@@ -410,7 +410,7 @@ namespace MultiLevel {
             int row = rpos / num_child_deltas;
 
             if ( row > 0 ) {
-                tup.num_leaves = (this->getNumOfLeaves()/cnt) * row;
+                tup.leaf_index = (this->getNumOfLeaves()/cnt) * row;
             }
 
             vector<DeltaNode *>::const_iterator it;
@@ -421,11 +421,11 @@ namespace MultiLevel {
                 int sizeofchild = (*it)->getNumOfDeltas();
                 if ( col < sizeofchild ) {
                     LeafTuple ltup = (*it)->getLeafTupleByPos( col );
-                    tup.num_leaves += ltup.num_leaves;
+                    tup.leaf_index += ltup.leaf_index;
                     tup.leaf_delta_sum = ltup.leaf_delta_sum;
                     break;
                 } else {
-                    tup.num_leaves += (*it)->getNumOfLeaves();
+                    tup.leaf_index += (*it)->getNumOfLeaves();
 
                     col -= sizeofchild;
                 }          
@@ -537,16 +537,32 @@ namespace MultiLevel {
 
         vector<off_t> deltalist;
         int leafpos = 0;
+        int rpos = pos;
         vector<DeltaNode *>::const_reverse_iterator rit;
+
         for ( rit =  children.rbegin() ;
               rit != children.rend()   ;
               rit++ )
         {
             if ( rit + 1 == children.rend() ) {
                 // this is the DeltaNode of [init...]
-
+                assert( (*rit)->isLeaf() );
+                assert( rpos < (*rit)->elements.size() );
+                off_t deltasum = sumVector( deltalist );
+                return (*rit)->elements[rpos] + deltasum;
+            } else {
+                // pure delta node
+                LeafTuple tup = (*rit)->getLeafTupleByPos(rpos);
+                deltalist.push_back( tup.leaf_delta_sum );
+                rpos = tup.leaf_index;
             }
         }
+        assert( 0 );
+    }
+
+    DeltaNode::~DeltaNode() 
+    {
+        freeChildren();
     }
 
 

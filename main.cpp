@@ -18,18 +18,6 @@ int main(int argc, char ** argv)
 {
     int i,j,k;
 
-    MultiLevel::DeltaNode dnode;
-    for ( i = 0 ; i < 4 ; i++ ) {
-        MultiLevel::DeltaNode* dleaf = new MultiLevel::DeltaNode;
-        dleaf->pushElement(1);
-        dleaf->pushElement(2);
-        dleaf->pushElement(3);
-        dleaf->pushElement(4);
-
-        dnode.pushChild(dleaf);
-    }
-
-
     vector<off_t> seq;
     for ( i = 0 ;
           i < 10 ;
@@ -41,36 +29,8 @@ int main(int argc, char ** argv)
     }
     seq.push_back(3);
 
-    cout << "_---_____________________________" << endl;
-    MultiLevel::DeltaNode *pattern2 
-        = new MultiLevel::DeltaNode( seq );
-   
-    MultiLevel::DeltaNode *pattern 
-        = MultiLevel::findPattern(dnode.children, 5);
-    
-    cout << "pattern show" << endl;
-    cout << pattern->show() << endl;
-    cout << "deltasum" << endl;
-    cout << pattern->getDeltaSum() << endl;
-
-    for ( i = 0 ; i < 16 ; i++ ) {
-        cout << i << ":" << pattern->getDeltaSumUtilPos(i) << endl;
-    }
-
-    cout << "____________________________________________________________" << endl;
-
-    for ( i = 0 ; i < 16 ; i++ ) {
-        MultiLevel::LeafTuple t = pattern->getLeafTupleByPos(i);
-        cout << "i:" << i << endl;
-        cout << "Leave index:" << t.num_leaves << endl;
-        cout << "Delta sum:" << t.leaf_delta_sum << endl;
-        cout << "-----------------" << endl;
-    }
-
-
-    dnode.freeChildren();
-
-
+    MultiLevel::DeltaNode dnode(seq);
+    cout << dnode.show() << endl;
 
     return 0;
 
