@@ -28,7 +28,7 @@ namespace MultiLevel {
     // It is a tree structure used to describe patterns
     class DeltaNode: public PatternAbstract {
         public:
-            DeltaNode()
+            DeltaNode();
             DeltaNode( vector<off_t> seq );
             void init();
 

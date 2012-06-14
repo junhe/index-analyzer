@@ -322,7 +322,7 @@ namespace MultiLevel {
         cnt = 1;
     }
 
-    void DeltaNode::DeltaNode()
+    DeltaNode::DeltaNode()
     {
         init();
     }
