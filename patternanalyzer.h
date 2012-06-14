@@ -42,6 +42,8 @@ namespace MultiLevel {
             void popDeltas( int n );
             void popChild();
             void pushChild( DeltaNode *newchild );
+            void push( DeltaNode *newchild );
+            void push( off_t newelem );
             int getNumOfDeltas() const;
             void assign( vector<DeltaNode *>::const_iterator first,
                          vector<DeltaNode *>::const_iterator last );
@@ -233,7 +235,7 @@ namespace MultiLevel {
                         //totally breaking any pattern.
                         //So we simply add one elem to the stack
                         DeltaNode *newchild = new DeltaNode;
-                        newchild->elements.push_back( *lookahead_win_start );
+                        newchild->push( *lookahead_win_start );
                         newchild->cnt = 1;
 
                         pattern_node->pushChild(newchild);

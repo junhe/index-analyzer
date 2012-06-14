@@ -192,6 +192,15 @@ namespace MultiLevel {
         elements.assign( first, last );
     }
 
+    void DeltaNode::push( DeltaNode *newchild ) {
+        pushChild(newchild);
+    }
+    
+    void DeltaNode::push( off_t newelem ) {
+        assert( isLeaf() );
+        elements.push_back(newelem);
+    }
+
     ////////////////////////////////////////////////////////////////
     //  PatternUnit
     ////////////////////////////////////////////////////////////////
