@@ -31,6 +31,7 @@ namespace MultiLevel {
             DeltaNode()
                 :cnt(1)
             {}
+            DeltaNode( vector<off_t> seq );
 
             int cnt; // how many times the node repeats
             vector<DeltaNode *> children;

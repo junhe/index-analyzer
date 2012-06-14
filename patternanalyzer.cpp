@@ -230,8 +230,7 @@ namespace MultiLevel {
     
     void DeltaNode::push( off_t newelem ) 
     {
-        assert( isLeaf() );
-        elements.push_back(newelem);
+        pushElement(newelem);
     }
 
     string DeltaNode::serialize()
@@ -317,6 +316,45 @@ namespace MultiLevel {
             }
         }
     }
+
+    // this constructor turns this DeltaNode into
+    // a pattern for logical_offset, length, or physical_offset
+    // The format is:
+    // [init...][Delta...] 
+    //                    [Delta...] 
+    //                                [Delta...] ...
+    // [] is a child. [init] is the only place that can be splitted.
+    DeltaNode::DeltaNode( vector<off_t> seq )
+    {
+        vector<off_t> deltas;
+        // [inits][deltas_pattern]
+        DeltaNode *deltas_pattern;
+        DeltaNode *inits = new DeltaNode;
+        deltas = buildDeltas( seq );
+
+        deltas_pattern = findPattern( deltas, 6 );
+        pushChild(inits);
+        pushChild(deltas_pattern);
+
+        // handle the inits
+        if ( seq.size() == 0 ) {
+            // nothing can be done
+            return; 
+        }
+        int pos = 0;
+        inits->pushElement( seq[pos] );
+        vector<DeltaNode *>::const_iterator it;
+        for ( it =  children.begin() ;
+              it != children.end() ;
+              it++ )
+        {
+            pos += (*it)->getNumOfDeltas();
+            assert( pos < seq.size() );
+            inits->pushElement( seq[pos] );
+        }
+        return;
+    }
+
 
     ////////////////////////////////////////////////////////////////
     //  PatternUnit
