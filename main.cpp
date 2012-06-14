@@ -69,10 +69,8 @@ int main(int argc, char ** argv)
 
 
     vector<off_t> seq;
-    for ( i = 0 ; i < 5 ; i++ ) {
-        seq.push_back(1);
-        seq.push_back(2);
-        seq.push_back(3);
+    for ( i = 0 ; i < 15 ; i++ ) {
+        seq.push_back(i);
     }
     MultiLevel::DeltaNode *pattern = MultiLevel::findPattern(seq, 5);
 

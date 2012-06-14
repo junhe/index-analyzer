@@ -24,11 +24,14 @@ namespace MultiLevel {
         }
         return deltas;
     }
-
-    Tuple searchNeighbor( vector<off_t> const &seq,
-            vector<off_t>::const_iterator p_lookahead_win, int win_size ) 
+    
+    template <class TYPE>
+    Tuple <TYPE> searchNeighbor( 
+                    vector<TYPE> const &seq,
+                    typename vector<TYPE>::const_iterator p_lookahead_win, 
+                    int win_size ) 
     {
-        vector<off_t>::const_iterator i;     
+        typename vector<TYPE>::const_iterator i;     
         int j;
 
         //i goes left util the begin or reaching window size
@@ -45,19 +48,19 @@ namespace MultiLevel {
         for ( ; i != p_lookahead_win ; i++ ) {
             int search_length = p_lookahead_win - i;
             for ( j = 0 ; j < search_length ; j++ ) {
-                if ( *(i+j) != *(p_lookahead_win + j) ) {
+                if ( *(i+j) != *(p_lookahead_win + j) ) { //TODO: need to impliment comparison
                     break;
                 }
             }
             if ( j == search_length ) {
                 //found a repeating neighbor
-                return Tuple(search_length, search_length, 
+                return Tuple<TYPE>(search_length, search_length, 
                         *(p_lookahead_win + search_length));
             }
         }
 
         //Cannot find a repeating neighbor
-        return Tuple(0, 0, *(p_lookahead_win));
+        return Tuple<TYPE>(0, 0, *(p_lookahead_win));
     }
 
 
@@ -67,9 +70,10 @@ namespace MultiLevel {
     // deltas is got by a sequence of inits. Later the output can be
     // used to combine inits with deltas
     // This function finds out the pattern by LZ77 modification
-    DeltaNode* findPattern( vector<off_t> const &deltas, int win_size )
+    template <class TYPE>
+    DeltaNode* findPattern( vector<TYPE> const &deltas, int win_size )
     {
-        vector<off_t>::const_iterator lookahead_win_start; 
+        typename vector<TYPE>::const_iterator lookahead_win_start; 
         DeltaNode *pattern_node = new DeltaNode;
         pattern_node->cnt = 1; //remind you that this level does not repeat
 
@@ -77,7 +81,7 @@ namespace MultiLevel {
         
         while ( lookahead_win_start != deltas.end() ) {
             //lookahead window is not empty
-            Tuple cur_tuple = searchNeighbor( deltas, 
+            Tuple<TYPE> cur_tuple = searchNeighbor( deltas, 
                                               lookahead_win_start, 
                                               win_size );
             //cur_tuple.show();
@@ -86,7 +90,7 @@ namespace MultiLevel {
                     //safe
                     pattern_node->popDeltas( cur_tuple.length );
 
-                    vector<off_t>::const_iterator first, last;
+                    typename vector<TYPE>::const_iterator first, last;
                     first = lookahead_win_start;
                     last = lookahead_win_start + cur_tuple.length;
 
@@ -408,19 +412,22 @@ namespace MultiLevel {
     ////////////////////////////////////////////////////////////////
     //  Tuple : the concept in LZ77
     ////////////////////////////////////////////////////////////////
-    Tuple::Tuple(int o, int l, off_t n) {
+    template <class TYPE>
+    Tuple<TYPE>::Tuple(int o, int l, TYPE n) {
         offset = o;
         length = l;
         next_symbol = n;
     }
     
-    void Tuple::put(int o, int l, off_t n) {
+    template <class TYPE>
+    void Tuple<TYPE>::put(int o, int l, TYPE n) {
         offset = o;
         length = l;
         next_symbol = n;
     }
 
-    bool Tuple::operator== (const Tuple other) {
+    template <class TYPE>
+    bool Tuple<TYPE>::operator== (const Tuple other) {
         if (offset == other.offset 
                 && length == other.length
                 && next_symbol == other.next_symbol)
@@ -431,11 +438,13 @@ namespace MultiLevel {
         }
     }
 
-    bool Tuple::isRepeatingNeighbor() {
+    template <class TYPE>
+    bool Tuple<TYPE>::isRepeatingNeighbor() {
         return (offset == length && offset > 0);
     }
     
-    string Tuple::show() {
+    template <class TYPE>
+    string Tuple<TYPE>::show() {
         ostringstream showstr;
         showstr << "(" << offset 
             << ", " << length

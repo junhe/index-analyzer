@@ -123,25 +123,27 @@ namespace MultiLevel {
             PatternChunk generatePatterns( PatternBlock &pblock );
     };
 
+    template <class TYPE>  // TYPE could be off_t or DeltaNode *
     class Tuple {
         public:
             int offset; //note that this is not the 
             // offset when accessing file. But
             // the offset in LZ77 algorithm
             int length; //concept in LZ77
-            off_t next_symbol;
+            TYPE next_symbol;
 
             Tuple() {}
-            Tuple(int o, int l, off_t n); 
+            Tuple(int o, int l, TYPE n); 
 
-            void put(int o, int l, off_t n);
+            void put(int o, int l, TYPE n);
             bool operator== (const Tuple other);
             // Tell if the repeating sequences are next to each other
             bool isRepeatingNeighbor();
             string show();
     };
 
-    DeltaNode *findPattern( vector<off_t> const &deltas,
+    template <class TYPE>
+    DeltaNode *findPattern( vector<TYPE> const &deltas,
                             int win_size );
 
 }
