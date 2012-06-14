@@ -317,6 +317,16 @@ namespace MultiLevel {
         }
     }
 
+    void DeltaNode::init()
+    {
+        cnt = 1;
+    }
+
+    void DeltaNode::DeltaNode()
+    {
+        init();
+    }
+
     // this constructor turns this DeltaNode into
     // a pattern for logical_offset, length, or physical_offset
     // The format is:
@@ -326,6 +336,7 @@ namespace MultiLevel {
     // [] is a child. [init] is the only place that can be splitted.
     DeltaNode::DeltaNode( vector<off_t> seq )
     {
+        init();
         vector<off_t> deltas;
         // [inits][deltas_pattern]
         DeltaNode *deltas_pattern;
