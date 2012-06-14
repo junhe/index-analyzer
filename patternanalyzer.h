@@ -43,6 +43,10 @@ namespace MultiLevel {
             void popChild();
             void pushChild( DeltaNode *newchild );
             int getNumOfDeltas() const;
+            void assign( vector<DeltaNode *>::const_iterator first,
+                         vector<DeltaNode *>::const_iterator last );
+            void assign( vector<off_t>::const_iterator first,
+                         vector<off_t>::const_iterator last );
     };
 
 
@@ -152,10 +156,13 @@ namespace MultiLevel {
                     int win_size ); 
 
 
-/*    template <class TYPE>
+    template <class TYPE>
     DeltaNode *findPattern( vector<TYPE> const &deltas,
                             int win_size );
-*/
+
+    bool isEqual(DeltaNode* a, DeltaNode* b);
+    bool isEqual(off_t a, off_t b);
+
     // Input:  vector<T> deltas
     // Output: DeltaNode describing patterns in deltas
     //
@@ -187,7 +194,7 @@ namespace MultiLevel {
                     last = lookahead_win_start + cur_tuple.length;
 
                     DeltaNode *combo_node = new DeltaNode;  // TODO: now only work for off_t
-                    combo_node->elements.assign(first, last);
+                    combo_node->assign(first, last);
                     combo_node->cnt = 2;
 
                     pattern_node->pushChild( combo_node  );
@@ -293,7 +300,7 @@ namespace MultiLevel {
     bool Tuple<TYPE>::operator== (const Tuple other) {
         if (offset == other.offset 
                 && length == other.length
-                && next_symbol == other.next_symbol)
+                && isEqual( next_symbol == other.next_symbol ) )
         {
             return true;
         } else {

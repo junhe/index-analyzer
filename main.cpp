@@ -61,24 +61,27 @@ int main(int argc, char ** argv)
     }
     cout << dnode.show() << endl;
     cout << "num of deltas" << dnode.getNumOfDeltas()<< endl;
-    cout << dnode.isPopSafe(5) << endl;
-    dnode.popDeltas(5);
+    
     cout << dnode.show() << endl;
+
+    vector<off_t> seq;
+    for ( i = 0 ;
+          i < 10 ;
+          i++ )
+    {
+        seq.push_back(1);
+        seq.push_back(2);
+        seq.push_back(3);
+    }
+
+
+    MultiLevel::DeltaNode *pattern 
+        = MultiLevel::findPattern(seq, 5);
+    cout << pattern->show() << endl;
 
     dnode.freeChildren();
 
 
-    vector<off_t> seq;
-    for ( i = 0 ; i < 15 ; i++ ) {
-        seq.push_back(i);
-        seq.push_back(i);
-        seq.push_back(i);
-    }
-    MultiLevel::DeltaNode *pattern = MultiLevel::findPattern(seq, 5);
-
-    cout << pattern->show() << endl;
-    pattern->freeChildren();
-    delete pattern;
 
     return 0;
 

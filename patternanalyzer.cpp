@@ -23,6 +23,17 @@ namespace MultiLevel {
         return deltas;
     }
     
+    bool isEqual(DeltaNode* a, DeltaNode* b)
+    {
+        //TODO: implement this
+        return true;     
+    }
+
+    bool isEqual(off_t a, off_t b)
+    {
+        return a==b;
+    }
+
 
     ////////////////////////////////////////////////////////////////
     //  DeltaNode
@@ -167,6 +178,18 @@ namespace MultiLevel {
     {
         assert( elements.size() == 0 );
         children.push_back(newchild);
+    }
+
+    void DeltaNode::assign( vector<DeltaNode *>::const_iterator first,
+                 vector<DeltaNode *>::const_iterator last )
+    {
+        children.assign( first, last );
+    }
+
+    void DeltaNode::assign( vector<off_t>::const_iterator first,
+                 vector<off_t>::const_iterator last )
+    {
+        elements.assign( first, last );
     }
 
     ////////////////////////////////////////////////////////////////
