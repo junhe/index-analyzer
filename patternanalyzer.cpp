@@ -390,8 +390,9 @@ namespace MultiLevel {
     {
         LeafTuple tup(0,0);
         int rpos = pos;
-        cout << __FUNCTION__ << ":" << pos << endl;
-        assert( rpos < this->getNumOfDeltas() );
+        //cout << __FUNCTION__ << ":" << pos
+        //     << "NumOfDeltas:" << this->getNumOfDeltas() << endl;
+        assert( rpos <= this->getNumOfDeltas() );
 
         if ( isLeaf() ) {
             // hit what you want
@@ -549,17 +550,31 @@ namespace MultiLevel {
               rit != children.rend()   ;
               rit++ )
         {
+            //cout << "------------ a loop ------------" <<endl;
             if ( rit + 1 == children.rend() ) {
                 // this is the DeltaNode of [init...]
                 assert( (*rit)->isLeaf() );
                 assert( rpos < (*rit)->elements.size() );
                 off_t deltasum = sumVector( deltalist );
+                //cout << "in [init..]" << "deltasum:" << deltasum
+                //     << "rpos: " << rpos
+                //     << "elem[rpos]: " << (*rit)->elements[rpos] << endl;
                 return (*rit)->elements[rpos] + deltasum;
             } else {
                 // pure delta node
                 LeafTuple tup = (*rit)->getLeafTupleByPos(rpos);
                 deltalist.push_back( tup.leaf_delta_sum );
                 rpos = tup.leaf_index;
+                //cout << "tup.leaf_index: " << tup.leaf_index << endl;
+                //cout << "delta list:" ;
+                vector<off_t>::iterator it;
+                for ( it = deltalist.begin();
+                      it != deltalist.end();
+                      it++ )
+                {
+                    //cout << *it << " " ;
+                }
+                //cout << endl;
             }
         }
         assert( 0 );
