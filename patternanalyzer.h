@@ -163,6 +163,8 @@ namespace MultiLevel {
             // Tell if the repeating sequences are next to each other
             bool isRepeatingNeighbor();
             string show();
+            string getSymbolStr(off_t sym);
+            string getSymbolStr(DeltaNode *sym);
     };
 
     template <class TYPE>
@@ -199,10 +201,11 @@ namespace MultiLevel {
             Tuple<TYPE> cur_tuple = searchNeighbor( deltas, 
                                               lookahead_win_start, 
                                               win_size );
-            //cur_tuple.show();
+            cout << "TUPLE:" << cur_tuple.show() << endl;
             if ( cur_tuple.isRepeatingNeighbor() ) {
                 if ( pattern_node->isPopSafe( cur_tuple.length ) ) {
                     //safe
+                    cout << "--safe" << endl;
                     pattern_node->popDeltas( cur_tuple.length );
 
                     typename vector<TYPE>::const_iterator first, last;
@@ -217,6 +220,7 @@ namespace MultiLevel {
                     lookahead_win_start += cur_tuple.length;
                 } else {
                     //unsafe
+                    cout << "--unsafe" << endl;
                     assert(pattern_node->children.size() > 0); // window moved,
                                                                // so some patterns must be in children
                     DeltaNode *lastchild = pattern_node->children.back();
@@ -236,10 +240,17 @@ namespace MultiLevel {
                             pattern_length += (*it)->getNumOfDeltas();
                         }
                     }
-
-                    if ( pattern_length == cur_tuple.length ) {
+                    cout << "--- pattern_length:" << pattern_length << endl;
+                    
+                    DeltaNode tmpnode;
+                    tmpnode.assign( lookahead_win_start,
+                                    lookahead_win_start + cur_tuple.length);
+                    
+                    cout << "--- in window length:" << tmpnode.getNumOfDeltas() << endl;
+                    if ( pattern_length == tmpnode.getNumOfDeltas() ) {
                         //the subdeltas in lookahead window repeats
                         //the last pattern in pattern_node
+                        cout << "---- repeats last pattern. add 1 to last pattern" << endl;
                         lastchild->cnt++;
 
                         lookahead_win_start += cur_tuple.length;
@@ -247,6 +258,7 @@ namespace MultiLevel {
                         //cannot pop out cur_tuple.length elems without
                         //totally breaking any pattern.
                         //So we simply add one elem to the stack
+                        cout << "---- cannot pop out. add new" << endl;
                         DeltaNode *newchild = new DeltaNode;
                         newchild->push( *lookahead_win_start );
                         newchild->cnt = 1;
@@ -258,6 +270,7 @@ namespace MultiLevel {
                 }
             } else {
                 //(0,0,x)
+                cout << "-no repeating neighor" << endl;
                 DeltaNode *newchild = new DeltaNode;
                 newchild->push( cur_tuple.next_symbol );
                 newchild->cnt = 1;
@@ -265,6 +278,7 @@ namespace MultiLevel {
                 
                 lookahead_win_start++;
             }
+            cout << pattern_node->show() << endl;
         }
       
         /*
@@ -333,9 +347,28 @@ namespace MultiLevel {
         ostringstream showstr;
         showstr << "(" << offset 
             << ", " << length
-            << ", " << next_symbol << ")" << endl;
+            //<< ", " << getSymbolStr(next_symbol) 
+            << ")" << endl;
         return showstr.str();
     }
+
+    template <class TYPE>
+    string Tuple<TYPE>::getSymbolStr(off_t sym) 
+    {
+        ostringstream oss;
+        oss << sym;
+        return oss.str();
+    }
+
+    template <class TYPE>
+    string Tuple<TYPE>::getSymbolStr(DeltaNode *sym) 
+    {
+        ostringstream oss;
+        oss << sym->show();
+        return oss.str();
+    }
+
+
 
 
     template <class TYPE>

@@ -27,7 +27,7 @@ namespace MultiLevel {
     bool isEqual(DeltaNode* a, DeltaNode* b)
     {
         //TODO: implement this
-        return true;     
+        return a->serialize() == b->serialize();
     }
 
     bool isEqual(off_t a, off_t b)

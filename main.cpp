@@ -51,11 +51,10 @@ int main(int argc, char ** argv)
     MultiLevel::DeltaNode dnode;
     for ( i = 0 ; i < 4 ; i++ ) {
         MultiLevel::DeltaNode* dleaf = new MultiLevel::DeltaNode;
-        dleaf->pushElement(i);
-        dleaf->pushElement(i);
-        dleaf->pushElement(i);
-        dleaf->pushElement(i);
-        dleaf->pushElement(i);
+        dleaf->pushElement(1);
+        dleaf->pushElement(2);
+        dleaf->pushElement(3);
+        dleaf->pushElement(4);
 
         dnode.pushChild(dleaf);
     }
@@ -73,7 +72,7 @@ int main(int argc, char ** argv)
     cout << "after serial" << endl;
     cout << fnode.show();
 
-    return 0;
+    cout << (dnode.serialize() == fnode.serialize()) << endl;
 
 
     vector<off_t> seq;
@@ -89,8 +88,13 @@ int main(int argc, char ** argv)
 
     //MultiLevel::DeltaNode *pattern 
     //    = MultiLevel::findPattern(seq, 5);
+
+    cout << "input " << endl;
+    cout << dnode.show() << endl;
     MultiLevel::DeltaNode *pattern 
         = MultiLevel::findPattern(dnode.children, 5);
+    
+    cout << "pattern show" << endl;
     cout << pattern->show() << endl;
 
     dnode.freeChildren();
