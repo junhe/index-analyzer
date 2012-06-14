@@ -410,7 +410,7 @@ namespace MultiLevel {
             return elem_sum * row + last_row_sum; 
         } else {
             off_t sum = 0;
-
+            assert( rpos < this->getNumOfDeltas() );
             int num_child_deltas = this->getNumOfDeltas()/cnt;
             assert( num_child_deltas > 0 );
             int col = rpos % num_child_deltas;
