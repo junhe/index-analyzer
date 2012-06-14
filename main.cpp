@@ -84,10 +84,14 @@ int main(int argc, char ** argv)
         seq.push_back(2);
         seq.push_back(3);
     }
+    seq.push_back(3);
 
 
-    //MultiLevel::DeltaNode *pattern 
-    //    = MultiLevel::findPattern(seq, 5);
+    MultiLevel::DeltaNode *pattern2 
+        = MultiLevel::findPattern(seq, 5);
+
+    pattern2->show();
+    return 0;
 
     cout << "input " << endl;
     cout << dnode.show() << endl;

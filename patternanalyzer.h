@@ -245,13 +245,15 @@ namespace MultiLevel {
                     DeltaNode tmpnode;
                     tmpnode.assign( lookahead_win_start,
                                     lookahead_win_start + cur_tuple.length);
-                    
+                     
                     cout << "--- in window length:" << tmpnode.getNumOfDeltas() << endl;
-                    if ( pattern_length == tmpnode.getNumOfDeltas() ) {
+                    int lookwin_delta_len = tmpnode.getNumOfDeltas();
+                    if ( lookwin_delta_len % pattern_length == 0 ) { //TODO: need to justify this
                         //the subdeltas in lookahead window repeats
                         //the last pattern in pattern_node
-                        cout << "---- repeats last pattern. add 1 to last pattern" << endl;
-                        lastchild->cnt++;
+                        lastchild->cnt +=  lookwin_delta_len/pattern_length;
+                        cout << "---- repeats last pattern. add " 
+                             << (lookwin_delta_len/pattern_length) << "to last pattern" << endl;
 
                         lookahead_win_start += cur_tuple.length;
                     } else {
