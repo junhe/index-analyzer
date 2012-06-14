@@ -7,6 +7,21 @@ namespace MultiLevel {
     ////////////////////////////////////////////////////////////////
     //  MISC
     ////////////////////////////////////////////////////////////////
+    inline
+    off_t sumVector( vector<off_t> seq )
+    {
+        vector<off_t>::const_iterator iiter;
+        
+        off_t sum = 0;
+        for ( iiter = seq.begin() ;
+              iiter != seq.end() ;
+              iiter++ )
+        {
+            sum += *iiter;
+        }
+        
+        return sum;
+    }
 
     vector<off_t> buildDeltas( vector<off_t> seq ) 
     {
@@ -365,6 +380,92 @@ namespace MultiLevel {
             inits->pushElement( seq[pos] );
         }
         return;
+    }
+
+    // input is the pos of delta
+    // leaf_pos is the output, it is the position of the leaf
+    DeltaNode *DeltaNode::getLeafByPos( int pos, int &leaf_pos )
+    {
+         
+    }
+
+
+    off_t DeltaNode::getDeltaSumUtilPos( const int pos )
+    {
+        int rpos = pos;
+
+        if ( isLeaf() ) {
+            assert ( rpos < elements.size() * cnt ); 
+            off_t delta_sum = 0;
+            int col = rpos % elements.size();
+            int row = rpos / elements.size();
+
+            assert ( row < cnt );
+            off_t elem_sum = sumVector(elements);
+
+            //+1 so include the one pointed by col
+            off_t last_row_sum 
+                  = sumVector( vector<off_t> (elements.begin(),
+                                              elements.begin() + col + 1) ); 
+            return elem_sum * row + last_row_sum; 
+        } else {
+            off_t sum = 0;
+
+            int num_child_deltas = this->getNumOfDeltas()/cnt;
+            assert( num_child_deltas > 0 );
+            int col = rpos % num_child_deltas;
+            int row = rpos / num_child_deltas;
+
+            if ( row > 0 ) {
+                off_t childsum = 0;
+                vector<DeltaNode *>::const_iterator cit;
+                for ( cit = children.begin() ;
+                      cit != children.end() ;
+                      cit++ )
+                {
+                    childsum += (*cit)->getDeltaSum();
+                }
+                sum += childsum * row;
+            }
+
+            vector<DeltaNode *>::const_iterator it;
+            for ( it = children.begin() ;
+                  it != children.end()  ;
+                  it++ )
+            {
+                int sizeofchild = (*it)->getNumOfDeltas();
+                if ( col < sizeofchild ) {
+                    sum += (*it)->getDeltaSumUtilPos( col );
+                    break;
+                } else {
+                    sum += (*it)->getDeltaSum();
+                    col -= sizeofchild;
+                }          
+            }
+            return sum;
+        }
+    }
+
+    off_t DeltaNode::getDeltaSum()
+    {
+        if ( isLeaf() ) {
+            return sumVector(elements)*cnt;
+        } else {
+            off_t sum = 0;
+            vector<DeltaNode *>::const_iterator it;
+            for ( it =  children.begin() ;
+                  it != children.end()   ;
+                  it++ )
+            {
+                sum += (*it)->getDeltaSum();
+            }
+            return sum*cnt;
+        }
+    }
+
+    // this DeltaNode must have format: [init...][delta...]
+    off_t DeltaNode::recoverPos( int pos )
+    {
     }
 
 

@@ -55,6 +55,10 @@ namespace MultiLevel {
                          vector<off_t>::const_iterator last );
             string serialize();
             void deSerialize( string buf );
+            off_t recoverPos( int pos );
+            DeltaNode *getLeafByPos( int pos, int &leaf_pos );
+            off_t getDeltaSumUtilPos( int pos );
+            off_t getDeltaSum();
     };
 
 
