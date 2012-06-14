@@ -5,12 +5,16 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
-
+#include <stdint.h>
 #include <assert.h>
 
 using namespace std;
 
 namespace MultiLevel {
+
+    #define LEAF   'L'
+    #define INNER  'I'
+    typedef int32_t header_t;
 
     class PatternAbstract {
         /*
@@ -49,6 +53,8 @@ namespace MultiLevel {
                          vector<DeltaNode *>::const_iterator last );
             void assign( vector<off_t>::const_iterator first,
                          vector<off_t>::const_iterator last );
+            string serialize();
+            void deSerialize( string buf );
     };
 
 
@@ -132,6 +138,14 @@ namespace MultiLevel {
             PatternChunk generatePatterns( PatternBlock &pblock );
     };
 
+    ////////////////////////////////////////////////////////
+    //
+    //
+    ////////////////////////////////////////////////////////
+    
+    void appendToBuffer( string &to, const void *from, const int size );
+    void readFromBuf( string &from, void *to, int &start, const int size );
+    
     template <class TYPE>  // TYPE could be off_t or DeltaNode *
     class Tuple {
         public:

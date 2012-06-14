@@ -1,6 +1,7 @@
 
 #include "patternanalyzer.h"
 
+#include <string.h>
 
 namespace MultiLevel {
     ////////////////////////////////////////////////////////////////
@@ -32,6 +33,21 @@ namespace MultiLevel {
     bool isEqual(off_t a, off_t b)
     {
         return a==b;
+    }
+
+    void appendToBuffer( string &to, const void *from, const int size )
+    {
+        if ( size > 0 ) { //make it safe
+            to.append( (char *)from, size );
+        }
+    }
+
+    //Note that this function will increase start
+    void readFromBuf( string &from, void *to, int &start, const int size )
+    {
+        //'to' has to be treated as plain memory
+        memcpy(to, &from[start], size);
+        start += size;
     }
 
 
@@ -196,9 +212,94 @@ namespace MultiLevel {
         pushChild(newchild);
     }
     
-    void DeltaNode::push( off_t newelem ) {
+    void DeltaNode::push( off_t newelem ) 
+    {
         assert( isLeaf() );
         elements.push_back(newelem);
+    }
+
+    string DeltaNode::serialize()
+    {
+        string buf;
+        if ( isLeaf() ) {
+            //[L][REP][Pattern Size][elements]
+            char buftype = LEAF; //L means leaf
+            appendToBuffer(buf, &buftype, sizeof(buftype));
+            appendToBuffer(buf, &cnt, sizeof(cnt));
+            header_t elembodysize = elements.size() * sizeof(off_t); 
+            appendToBuffer(buf, &elembodysize, sizeof(elembodysize));
+            if ( elembodysize > 0 ) {
+                appendToBuffer(buf, &elements[0], elembodysize);
+            }
+            return buf;
+        } else {
+            //[I][REP][Pattern Size][ [..] [...] ..  ]
+            char buftype = INNER; // I means inner
+            appendToBuffer(buf, &buftype, sizeof(buftype));
+            appendToBuffer(buf, &cnt, sizeof(cnt));
+            header_t bodysize = 0; //wait to be updated
+            int bodysize_pos = buf.size(); // buf[bodysize_pos] is where
+                                           // the bodysize is
+            appendToBuffer(buf, &bodysize, sizeof(bodysize));
+            
+            vector<DeltaNode *>::const_iterator it;
+            for ( it =  children.begin() ;
+                  it != children.end()   ;
+                  it++ )
+            {
+                string tmpbuf;
+                tmpbuf = (*it)->serialize();
+                appendToBuffer(buf, tmpbuf.c_str(), tmpbuf.size());
+            }
+            header_t *psize = (header_t *) &buf[bodysize_pos]; 
+            *psize = buf.size() - bodysize_pos;
+            return buf;
+        }
+    }
+
+    void DeltaNode::deSerialize( string buf )
+    {
+        char buftype;
+        header_t bodysize = 0;
+        int cur_start = 0;
+
+        readFromBuf( buf, &buftype, cur_start, sizeof(buftype));
+        readFromBuf( buf, &cnt, cur_start, sizeof(cnt));
+        readFromBuf( buf, &bodysize, cur_start, sizeof(bodysize));
+        
+        if ( buftype == LEAF ) {
+            //only elements left in buf
+            if ( bodysize > 0 ) {
+                elements.resize( bodysize/sizeof(off_t) );
+                readFromBuf( buf, &elements[0], cur_start, bodysize);
+            }
+        } else {
+            // It is a inner node in buf
+            while ( cur_start < buf.size() ) {
+                char btype;
+                int bcnt;
+                header_t bbodysize;
+                int bufsize;
+
+                readFromBuf( buf, &btype, cur_start, sizeof(btype));
+                readFromBuf( buf, &bcnt, cur_start, sizeof(bcnt));
+                readFromBuf( buf, &bbodysize, cur_start, sizeof(bbodysize));
+                bufsize = sizeof(btype) + sizeof(bcnt) 
+                          + sizeof(bbodysize) + bbodysize;
+
+                string localbuf;
+                localbuf.resize( bufsize );
+                cur_start -= (sizeof(btype) + sizeof(bcnt)
+                              + sizeof(bbodysize));
+                             
+                readFromBuf( buf, &localbuf[0], cur_start, bufsize);
+
+                DeltaNode *newchild = new DeltaNode;
+                newchild->deSerialize(localbuf);
+
+                pushChild(newchild);
+            }
+        }
     }
 
     ////////////////////////////////////////////////////////////////

@@ -62,7 +62,19 @@ int main(int argc, char ** argv)
     cout << dnode.show() << endl;
     cout << "num of deltas" << dnode.getNumOfDeltas()<< endl;
     
+    cout << "before serial" << endl;
     cout << dnode.show() << endl;
+
+    string buf = dnode.serialize();
+
+    MultiLevel::DeltaNode fnode;
+    fnode.deSerialize(buf);
+
+    cout << "after serial" << endl;
+    cout << fnode.show();
+
+    return 0;
+
 
     vector<off_t> seq;
     for ( i = 0 ;
@@ -75,8 +87,10 @@ int main(int argc, char ** argv)
     }
 
 
+    //MultiLevel::DeltaNode *pattern 
+    //    = MultiLevel::findPattern(seq, 5);
     MultiLevel::DeltaNode *pattern 
-        = MultiLevel::findPattern(seq, 5);
+        = MultiLevel::findPattern(dnode.children, 5);
     cout << pattern->show() << endl;
 
     dnode.freeChildren();
