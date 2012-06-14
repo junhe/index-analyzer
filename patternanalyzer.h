@@ -249,7 +249,7 @@ namespace MultiLevel {
                      
                     cout << "--- in window length:" << tmpnode.getNumOfDeltas() << endl;
                     int lookwin_delta_len = tmpnode.getNumOfDeltas();
-                    if ( lookwin_delta_len % pattern_length == 0 ) { //TODO: need to justify this
+                    if ( lookwin_delta_len == pattern_length ) { //TODO: need to justify this
                         //the subdeltas in lookahead window repeats
                         //the last pattern in pattern_node
                         lastchild->cnt +=  lookwin_delta_len/pattern_length;
