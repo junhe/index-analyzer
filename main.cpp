@@ -57,7 +57,7 @@ int main(int argc, char ** argv)
         dleaf->pushElement(i);
         dleaf->pushElement(i);
 
-        dnode.children.push_back(dleaf);
+        dnode.pushChild(dleaf);
     }
     cout << dnode.show() << endl;
     cout << "num of deltas" << dnode.getNumOfDeltas()<< endl;
@@ -66,6 +66,19 @@ int main(int argc, char ** argv)
     cout << dnode.show() << endl;
 
     dnode.freeChildren();
+
+
+    vector<off_t> seq;
+    for ( i = 0 ; i < 5 ; i++ ) {
+        seq.push_back(1);
+        seq.push_back(2);
+        seq.push_back(3);
+    }
+    MultiLevel::DeltaNode *pattern = MultiLevel::findPattern(seq, 5);
+
+    cout << pattern->show() << endl;
+    pattern->freeChildren();
+    delete pattern;
 
     return 0;
 

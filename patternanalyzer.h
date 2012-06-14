@@ -141,6 +141,9 @@ namespace MultiLevel {
             string show();
     };
 
+    DeltaNode *findPattern( vector<off_t> const &deltas,
+                            int win_size );
+
 }
 
 

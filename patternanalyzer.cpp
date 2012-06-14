@@ -61,17 +61,17 @@ namespace MultiLevel {
     }
 
 
-/*
     // Input:  vector<T> deltas
     // Output: DeltaNode describing patterns in deltas
     //
     // deltas is got by a sequence of inits. Later the output can be
     // used to combine inits with deltas
     // This function finds out the pattern by LZ77 modification
-    DeltaNode findPattern( vector<off_t> const &deltas, int win_size )
+    DeltaNode* findPattern( vector<off_t> const &deltas, int win_size )
     {
-        vector<off_t>::const_iterator lookahead_win_start, 
-        DeltaNode pattern_node;
+        vector<off_t>::const_iterator lookahead_win_start; 
+        DeltaNode *pattern_node = new DeltaNode;
+        pattern_node->cnt = 1; //remind you that this level does not repeat
 
         lookahead_win_start = deltas.begin();
         
@@ -82,76 +82,78 @@ namespace MultiLevel {
                                               win_size );
             //cur_tuple.show();
             if ( cur_tuple.isRepeatingNeighbor() ) {
-                if ( pattern_node.isPopSafe( cur_tuple.length ) ) {
+                if ( pattern_node->isPopSafe( cur_tuple.length ) ) {
                     //safe
-                    pattern_node.popElem( cur_tuple.length );
+                    pattern_node->popDeltas( cur_tuple.length );
 
                     vector<off_t>::const_iterator first, last;
                     first = lookahead_win_start;
                     last = lookahead_win_start + cur_tuple.length;
 
-                    DeltaNode combo_node;  // TODO: now only work for off_t
-                    combo_node.elements.assign(first, last);
-                    combo_node.cnt = 2;
+                    DeltaNode *combo_node = new DeltaNode;  // TODO: now only work for off_t
+                    combo_node->elements.assign(first, last);
+                    combo_node->cnt = 2;
 
-                    pattern_node.push( pu );
+                    pattern_node->pushChild( combo_node  );
                     lookahead_win_start += cur_tuple.length;
-                    lookahead_win_start_orig += cur_tuple.length;
                 } else {
                     //unsafe
-                    IdxSigUnit pu = pattern_node.top();
 
-                    if ( pu.deltas.size() == cur_tuple.length ) {
+                    assert(pattern_node->children.size() > 0); // window moved,
+                                                               // so some patterns must be in children
+                    DeltaNode *lastchild = pattern_node->children.back();
+                    
+                    // check if the last child(pattern) can be used to 
+                    // represent the repeating neighbors
+                    int pattern_length = 0; //how many non-expanded deltas in lastchild
+                    if ( lastchild->isLeaf() ) {
+                        pattern_length = lastchild->elements.size();
+                    } else {
+                        // lastchild is a inner node
+                        vector<DeltaNode *>::const_iterator it;
+                        for ( it =  lastchild->children.begin() ;
+                              it != lastchild->children.end() ;
+                              it++ )
+                        {
+                            pattern_length += (*it)->getNumOfDeltas();
+                        }
+                    }
+
+                    if ( pattern_length == cur_tuple.length ) {
                         //the subdeltas in lookahead window repeats
-                        //the top pattern in stack.
-                        //initial remains the same.
-                        pu.cnt++;
-                        pattern_node.popPattern();
-                        pattern_node.push(pu);
-                        pu.init = *lookahead_win_start_orig; //should delete this. keep if only for 
-                        //tmp debug.
+                        //the last pattern in pattern_node
+                        lastchild->cnt++;
 
                         lookahead_win_start += cur_tuple.length;
-                        lookahead_win_start_orig += cur_tuple.length;
                     } else {
                         //cannot pop out cur_tuple.length elems without
                         //totally breaking any pattern.
                         //So we simply add one elem to the stack
-                        IdxSigUnit pu;
-                        pu.deltas.push_back( *lookahead_win_start );
-                        pu.init = *lookahead_win_start_orig;
-                        pu.cnt = 1;
-                        pattern_node.push(pu);
+                        DeltaNode *newchild = new DeltaNode;
+                        newchild->elements.push_back( *lookahead_win_start );
+                        newchild->cnt = 1;
+
+                        pattern_node->pushChild(newchild);
+                        
                         lookahead_win_start++;
-                        lookahead_win_start_orig++;
                     }
                 }
             } else {
                 //(0,0,x)
-                IdxSigUnit pu;
-                pu.deltas.push_back(cur_tuple.next_symbol);
-                pu.init = *lookahead_win_start_orig;
-                pu.cnt = 1;
-
-                pattern_node.push(pu); 
+                DeltaNode *newchild = new DeltaNode;
+                newchild->elements.push_back( cur_tuple.next_symbol );
+                newchild->cnt = 1;
+                pattern_node->pushChild(newchild);
+                
                 lookahead_win_start++;
-                lookahead_win_start_orig++;
             }
         }
-       
-        if ( lookahead_win_start_orig < orig.end() ) {
-            assert(lookahead_win_start_orig + 1 == orig.end());
-            IdxSigUnit pu;
-            pu.init = *lookahead_win_start_orig;
-            pu.cnt = 0;
-
-            pattern_node.push(pu); 
-        }
-       
+      
+        /*
         SigStack<IdxSigUnit> pattern_node_compressed;
         vector<IdxSigUnit>::iterator it;
-        for ( it = pattern_node.the_stack.begin();
-              it != pattern_node.the_stack.end();
+        for ( it = pattern_node->the_stack.begin();
+              it != pattern_node->the_stack.end();
               it++ )
         {
             it->compressRepeats();
@@ -169,30 +171,10 @@ namespace MultiLevel {
             //oss << pattern_node_compressed.show();
             ////mlog(IDX_WARN, "%s", oss.str().c_str());
         }
+        */
         
-
-        if ( pattern_node.size() != orig.size() ) {
-            ostringstream oss;
-            oss<< "pattern_node.size() != orig.size() in"
-                   << __FUNCTION__ << pattern_node.size() 
-                   << "," << orig.size() << endl;
-            oss << "deltas.size():" << deltas.size() << endl;
-            oss << pattern_node.show() << endl;
-            vector<off_t>::const_iterator it;
-            for ( it = orig.begin();
-                  it != orig.end();
-                  it++ )
-            {
-                oss << *it << ",";
-            }
-            oss << endl;
-            //mlog(IDX_ERR, "%s", oss.str().c_str());
-            exit(-1);
-        }
-
-        return pattern_node_compressed;
+        return pattern_node;
     }
-*/
 
     ////////////////////////////////////////////////////////////////
     //  DeltaNode
