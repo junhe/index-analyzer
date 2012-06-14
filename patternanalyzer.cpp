@@ -390,11 +390,16 @@ namespace MultiLevel {
     {
         LeafTuple tup(0,0);
         int rpos = pos;
+        cout << __FUNCTION__ << ":" << pos << endl;
         assert( rpos < this->getNumOfDeltas() );
 
         if ( isLeaf() ) {
             // hit what you want
-            tup.leaf_delta_sum = this->getDeltaSumUtilPos(rpos);
+            if ( rpos == 0 ) {
+                tup.leaf_delta_sum = 0;
+            } else {
+                tup.leaf_delta_sum = this->getDeltaSumUtilPos(rpos - 1);
+            }
             tup.leaf_index = 0; // tup.leaf_index can be used as an index
                                 // leaves[ leaf_index ] is this one
             return tup;
