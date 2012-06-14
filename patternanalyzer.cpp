@@ -82,6 +82,20 @@ namespace MultiLevel {
         start += size;
     }
 
+    template <class T>
+    void printVector( vector<T> vec )
+    {
+        typename vector<T>::const_iterator iiter;
+        
+        cout << "printVector: ";
+        for ( iiter = vec.begin() ;
+              iiter != vec.end() ;
+              iiter++ )
+        {
+            cout <<  *iiter << ",";
+        }
+        cout << endl;        
+    }
 
     ////////////////////////////////////////////////////////////////
     //  DeltaNode
@@ -352,12 +366,15 @@ namespace MultiLevel {
     // [] is a child. [init] is the only place that can be splitted.
     void DeltaNode::buildPatterns( vector<off_t> seq )
     {
+        //cout << "in " << __FUNCTION__ << endl;
         init();
         vector<off_t> deltas;
         // [inits][deltas_pattern]
         DeltaNode *deltas_pattern;
         DeltaNode *inits = new DeltaNode;
         deltas = buildDeltas( seq );
+        
+        //printVector(deltas);
 
         deltas_pattern = findPattern( deltas, 6 );
         pushChild(inits);
@@ -607,6 +624,8 @@ namespace MultiLevel {
             h_physical_off.push_back(iter->physical_offset);
         }
         
+        //printVector( h_logical_off );
+        //cout << "jjjjjjjjjjjjjjjjjjJ" << endl;
         this->logical_offset.buildPatterns( h_logical_off );
         this->length.buildPatterns( h_length );
         this->physical_offset.buildPatterns( h_physical_off );
@@ -616,9 +635,9 @@ namespace MultiLevel {
     string PatternCombo::show()
     {
         ostringstream oss;
-        oss << "LOGICAL_OFFSET :" << logical_offset.show() << endl;
-        oss << "LENGTH         :" << length.show() << endl;
-        oss << "PHYSICAL_OFFSET:" << physical_offset.show() << endl;
+        oss << "****LOGICAL_OFFSET**** :" << logical_offset.show() << endl;
+        oss << "****    LENGTH         :" << length.show() << endl;
+        oss << "**** PHYSICAL_OFFSET **:" << physical_offset.show() << endl;
         return oss.str();
     }
 
