@@ -363,6 +363,17 @@ namespace MultiLevel {
             DeltaNode::deleteIt( *pit );
         }
         delete pattern_node;
+
+        //flatten it to save space and possibly time
+        // Don't flatten pattern_node_copy,
+        // otherwise it may become a leaf!
+        for ( pit = pattern_node_copy->children.begin() ;
+              pit != pattern_node_copy->children.end() ;
+              pit++ )
+        {
+            (*pit)->flattenMe();
+        }
+        
         return pattern_node_copy;
     }
 
