@@ -278,6 +278,11 @@ namespace MultiLevel {
         pushChild(newone);
     }
 
+    void pushCopy( off_t elm )
+    {
+        push(elm);
+    }
+
     string DeltaNode::serialize()
     {
         string buf;

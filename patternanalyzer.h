@@ -68,6 +68,7 @@ namespace MultiLevel {
             void assign( vector<off_t>::const_iterator first,
                          vector<off_t>::const_iterator last );
             void pushCopy( DeltaNode *nd );
+            void pushCopy( off_t elm );
             string serialize();
             void deSerialize( string buf );
             off_t recoverPos( const int pos );
@@ -310,7 +311,7 @@ namespace MultiLevel {
                 //(0,0,x)
                 //cout << "-no repeating neighor" << endl;
                 DeltaNode *newchild = new DeltaNode;
-                newchild->push( cur_tuple.next_symbol );
+                newchild->pushCopy( cur_tuple.next_symbol );
                 newchild->cnt = 1;
                 pattern_node->pushChild(newchild);
                 
