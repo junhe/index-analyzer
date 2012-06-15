@@ -430,18 +430,22 @@ namespace MultiLevel {
         init();
         
         elements = seq;
-        compressMyInit();
+        compressMyInit(6);
 
         // you can compress more by calling
         // compressMyInit()
         // or to compress deltas, call delta->compressMe for them
+        cout << this->show() << endl;
+        cout << "COOMPRESS second time" << endl;
+        compressMyInit(6);
+        cout << this->show() << endl;
         
         return;
     }
 
     // It compresses [init..] in this [init..][delta...][delta..]
     // [init..] is splitted to [new init..][new delta..]
-    void DeltaNode::compressMyInit()
+    void DeltaNode::compressMyInit(int win_size)
     {
         if ( isLeaf() ) {
             // this: [init.. ]^1
@@ -452,7 +456,7 @@ namespace MultiLevel {
             
             deltas = buildDeltas( elements );
 
-            deltas_pattern = findPattern( deltas, 6 );
+            deltas_pattern = findPattern( deltas, win_size );
 
             // handle the inits
             if ( elements.size() == 0 ) {
@@ -504,18 +508,18 @@ namespace MultiLevel {
 
     // It tries to use LZ77 to find repeating pattern in
     // the children
-    void DeltaNode::compressMe()
+    void DeltaNode::compressMe(int win_size)
     {
        
         if ( isLeaf() ) {
             DeltaNode *compressedChild 
-                       = findPattern( this->elements, 20 );
+                       = findPattern( this->elements, win_size );
             this->elements.clear(); 
             children = compressedChild->children;
         } else {
             // Not a leaf
             DeltaNode *compressedChild 
-                       = findPattern( this->children, 20 );
+                       = findPattern( this->children, win_size );
             freeChildren();
             children = compressedChild->children;
         }

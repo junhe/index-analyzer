@@ -61,9 +61,6 @@ int main(int argc, char ** argv)
         MultiLevel::PatternCombo combo;
         combo.buildFromHostEntries(entry_buf, proc);
         cout << combo.show();
-        combo.logical_offset.children.back()->compressMe();
-        cout << "------------------------------------------------------" << endl;
-        cout << combo.show();
     }
     
     //cout << sig_entrylist.show();

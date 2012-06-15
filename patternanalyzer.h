@@ -77,10 +77,10 @@ namespace MultiLevel {
             off_t getDeltaSum();
             int getNumOfLeaves();
             void buildPatterns( const vector<off_t> & seq );
-            void compressMe();
+            void compressMe(int win_size);
             static void deleteIt( DeltaNode * nd ); 
             static void deleteIt( off_t anoff ) ;
-            void compressMyInit();
+            void compressMyInit(int win_size = 6);
     };
 
     class PatternCombo {
