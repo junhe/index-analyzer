@@ -854,6 +854,43 @@ namespace MultiLevel {
         return buf;       
     }
 
+    void PatternCombo::deSerialize( string buf )
+    {
+        header_t combo_bodysize;
+        header_t log_bodysize = 0;
+        header_t len_bodysize = 0;
+        header_t phy_bodysize = 0;
+        int cur_pos = 0;
+        string tmpbuf;
+        
+        readFromBuf( buf, &combo_bodysize,    cur_pos, sizeof(combo_bodysize));
+        readFromBuf( buf, &original_chunk_id, cur_pos, sizeof(original_chunk_id));
+        readFromBuf( buf, &new_chunk_id,      cur_pos, sizeof(new_chunk_id));
+        readFromBuf( buf, &begin_timestamp,   cur_pos, sizeof(begin_timestamp));
+        readFromBuf( buf, &end_timestamp,     cur_pos, sizeof(end_timestamp));
+        
+        readFromBuf( buf, &log_bodysize,      cur_pos, sizeof(log_bodysize));
+        if ( log_bodysize > 0 ) {
+            tmpbuf.resize( log_bodysize );
+            readFromBuf( buf, &tmpbuf[0],     cur_pos, log_bodysize);
+            logical_offset.deSerialize( tmpbuf );
+        }
+        
+        readFromBuf( buf, &len_bodysize,      cur_pos, sizeof(len_bodysize));
+        if ( len_bodysize > 0 ) {
+            tmpbuf.resize( len_bodysize );
+            readFromBuf( buf, &tmpbuf[0],     cur_pos, len_bodysize );
+            length.deSerialize( tmpbuf );
+        }
+        
+        readFromBuf( buf, &phy_bodysize,      cur_pos, sizeof(phy_bodysize));
+        if ( phy_bodysize > 0 ) {
+            tmpbuf.resize( phy_bodysize );
+            readFromBuf( buf, &tmpbuf[0],     cur_pos, sizeof(phy_bodysize) );
+            physical_offset.deSerialize( tmpbuf );
+        }
+    }
+
     PatternCombo::~PatternCombo()
     {
         // clean up 

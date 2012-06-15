@@ -99,7 +99,7 @@ namespace MultiLevel {
             ~PatternCombo();
             string show();
             string serialize();
-            void deSerialize();
+            void deSerialize(string );
     };
 
 
