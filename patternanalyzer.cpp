@@ -850,7 +850,12 @@ namespace MultiLevel {
         appendToBuffer( buf, lenbuf.c_str(), lenbuf.size() );
         appendToBuffer( buf, &phy_bodysize, sizeof(phy_bodysize));
         appendToBuffer( buf, phybuf.c_str(), phybuf.size());
-
+        //cout << "combo serialized" << endl;
+        //cout << "combo_bodysize " << combo_bodysize << endl;
+        //cout << "original_chunk_id " << original_chunk_id << endl;
+        //cout << "log_bodysize: " << log_bodysize << endl;
+        //cout << "len_bodysize: " << len_bodysize << endl;
+        //cout << "phy_bodysize: " << phy_bodysize << endl;
         return buf;       
     }
 
@@ -869,7 +874,13 @@ namespace MultiLevel {
         readFromBuf( buf, &begin_timestamp,   cur_pos, sizeof(begin_timestamp));
         readFromBuf( buf, &end_timestamp,     cur_pos, sizeof(end_timestamp));
         
+        //cout << "COMBO deSerializ..." << endl;
+        //cout << "combo_bodysize " << combo_bodysize << endl;
+        //cout << "original_chunk_id " << original_chunk_id << endl;
+
         readFromBuf( buf, &log_bodysize,      cur_pos, sizeof(log_bodysize));
+        //cout << "log_bodysize: " << log_bodysize << endl;
+
         if ( log_bodysize > 0 ) {
             tmpbuf.resize( log_bodysize );
             readFromBuf( buf, &tmpbuf[0],     cur_pos, log_bodysize);
@@ -877,6 +888,7 @@ namespace MultiLevel {
         }
         
         readFromBuf( buf, &len_bodysize,      cur_pos, sizeof(len_bodysize));
+        //cout << "len_bodysize: " << len_bodysize << endl;
         if ( len_bodysize > 0 ) {
             tmpbuf.resize( len_bodysize );
             readFromBuf( buf, &tmpbuf[0],     cur_pos, len_bodysize );
@@ -884,11 +896,13 @@ namespace MultiLevel {
         }
         
         readFromBuf( buf, &phy_bodysize,      cur_pos, sizeof(phy_bodysize));
+        //cout << "phy_bodysize: " << phy_bodysize << endl;
         if ( phy_bodysize > 0 ) {
             tmpbuf.resize( phy_bodysize );
-            readFromBuf( buf, &tmpbuf[0],     cur_pos, sizeof(phy_bodysize) );
+            readFromBuf( buf, &tmpbuf[0],     cur_pos, phy_bodysize );
             physical_offset.deSerialize( tmpbuf );
         }
+        //cout << "COMBO deSerialized" << endl;
     }
 
     PatternCombo::~PatternCombo()

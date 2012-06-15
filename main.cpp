@@ -61,6 +61,13 @@ int main(int argc, char ** argv)
         MultiLevel::PatternCombo combo;
         combo.buildFromHostEntries(entry_buf, proc);
         cout << combo.show();
+       
+        cout << ")))))))))))))))))))))))))" << endl;
+        MultiLevel::PatternCombo combo2;
+        combo2.deSerialize( combo.serialize() );
+        cout << combo2.show() << endl;;
+
+
     }
     
     //cout << sig_entrylist.show();
