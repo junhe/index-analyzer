@@ -298,8 +298,7 @@ namespace MultiLevel {
                         //So we simply add one elem to the stack
                         //cout << "---- cannot pop out. add new" << endl;
                         DeltaNode *newchild = new DeltaNode;
-                        newchild->assign( lookahead_win_start,
-                                          lookahead_win_start + 1 );
+                        newchild->push( *lookahead_win_start );
                         newchild->cnt = 1;
 
                         pattern_node->pushChild(newchild);
@@ -311,7 +310,7 @@ namespace MultiLevel {
                 //(0,0,x)
                 //cout << "-no repeating neighor" << endl;
                 DeltaNode *newchild = new DeltaNode;
-                newchild->pushCopy( cur_tuple.next_symbol );
+                newchild->push( cur_tuple.next_symbol );
                 newchild->cnt = 1;
                 pattern_node->pushChild(newchild);
                 

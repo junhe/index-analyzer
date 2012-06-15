@@ -245,11 +245,7 @@ namespace MultiLevel {
     void DeltaNode::assign( vector<DeltaNode *>::const_iterator first,
                  vector<DeltaNode *>::const_iterator last )
     {
-        children.clear();
-        vector<DeltaNode *>::const_iterator it;
-        for ( it = first ; it != last ; it++ ) {
-            pushCopy( *it );
-        }
+        children.assign( first, last );
     }
 
     void DeltaNode::assign( vector<off_t>::const_iterator first,
@@ -258,9 +254,6 @@ namespace MultiLevel {
         elements.assign( first, last );
     }
 
-    // Be careful. This function passes pointer.
-    // The thing pointed by this can be deleted
-    // somewhere else!
     void DeltaNode::push( DeltaNode *newchild ) {
         pushChild(newchild);
     }
