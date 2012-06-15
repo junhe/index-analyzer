@@ -54,21 +54,42 @@ int main(int argc, char ** argv)
 
     int maxproc;
     entry_buf = bufferEntries(idx_file, maxproc);
-    
+   
     int proc;
-    for ( proc = 0 ; proc <= 0 ; proc++ ) {
+    // compress contiguous
+    vector<HostEntry> compressed;
+    for ( proc = 0 ; proc <= maxproc ; proc++ ) {
+        vector<HostEntry>::iterator it;
+        for ( it = entry_buf.begin() ;
+              it != entry_buf.end() ;
+              it++ ) 
+        {
+            if ( it->id != proc )
+                continue;
+
+            if ( !compressed.empty() &&
+                 compressed.back().id == it->id &&
+                 compressed.back().logical_offset + 
+                    compressed.back().length == it->logical_offset ) 
+            {
+                compressed.back().length += it->length;
+            }
+        }
+    }
+
+
+
+    int totalsize = 0;
+    for ( proc = 0 ; proc <= maxproc ; proc++ ) {
         //sig_entrylist.append(mysig.generateIdxSignature(entry_buf, proc));
         MultiLevel::PatternCombo combo;
-        combo.buildFromHostEntries(entry_buf, proc);
+        combo.buildFromHostEntries(compressed, proc);
         cout << combo.show();
-       
-        cout << ")))))))))))))))))))))))))" << endl;
-        MultiLevel::PatternCombo combo2;
-        combo2.deSerialize( combo.serialize() );
-        cout << combo2.show() << endl;;
-
-
+        string tmpbuf = combo.serialize();
+        cout << "serid size: " << tmpbuf.size() << endl;
+        totalsize += tmpbuf.size();
     }
+    cout << "totalsize: " << totalsize << endl;
     
     //cout << sig_entrylist.show();
 
