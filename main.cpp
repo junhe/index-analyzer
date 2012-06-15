@@ -54,7 +54,9 @@ int main(int argc, char ** argv)
 
     int maxproc;
     entry_buf = bufferEntries(idx_file, maxproc);
-   
+  
+
+    cout << "entry buffered" << endl;
     int proc;
     // compress contiguous
     vector<HostEntry> compressed;
@@ -73,10 +75,14 @@ int main(int argc, char ** argv)
                     compressed.back().length == it->logical_offset ) 
             {
                 compressed.back().length += it->length;
+            } else {
+                compressed.push_back( *it );
             }
         }
     }
 
+    cout << "old size: " << entry_buf.size() << endl;
+    cout << "compressed size " << compressed.size() << endl;
 
 
     int totalsize = 0;

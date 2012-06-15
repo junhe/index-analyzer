@@ -468,6 +468,7 @@ namespace MultiLevel {
         if ( isLeaf() ) {
             // this: [init.. ]^1
             // after: [[init..][delta..]..]
+
             vector<off_t> deltas;
             DeltaNode *deltas_pattern;
             DeltaNode *inits = new DeltaNode;
