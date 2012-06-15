@@ -67,6 +67,7 @@ namespace MultiLevel {
                          vector<DeltaNode *>::const_iterator last );
             void assign( vector<off_t>::const_iterator first,
                          vector<off_t>::const_iterator last );
+            void pushCopy( DeltaNode *nd );
             string serialize();
             void deSerialize( string buf );
             off_t recoverPos( const int pos );
@@ -75,10 +76,13 @@ namespace MultiLevel {
             off_t getDeltaSum();
             int getNumOfLeaves();
             void buildPatterns( vector<off_t> seq );
+            void compressMe();
     };
 
     class PatternCombo {
         public:
+            pid_t original_chunk_id;
+            pid_t new_chunk_id;
             DeltaNode logical_offset;
             DeltaNode length;
             DeltaNode physical_offset;
@@ -293,7 +297,8 @@ namespace MultiLevel {
                         //So we simply add one elem to the stack
                         //cout << "---- cannot pop out. add new" << endl;
                         DeltaNode *newchild = new DeltaNode;
-                        newchild->push( *lookahead_win_start );
+                        newchild->assign( lookahead_win_start,
+                                          lookahead_win_start + 1 );
                         newchild->cnt = 1;
 
                         pattern_node->pushChild(newchild);

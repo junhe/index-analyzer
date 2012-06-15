@@ -55,15 +55,15 @@ int main(int argc, char ** argv)
     int maxproc;
     entry_buf = bufferEntries(idx_file, maxproc);
     
-    MultiLevel::PatternCombo combo;
     int proc;
-    for ( proc = 0 ; proc < 1 ; proc++ ) {
+    for ( proc = 0 ; proc <= 0 ; proc++ ) {
         //sig_entrylist.append(mysig.generateIdxSignature(entry_buf, proc));
+        MultiLevel::PatternCombo combo;
         combo.buildFromHostEntries(entry_buf, proc);
+        cout << combo.show();
     }
     
     //cout << sig_entrylist.show();
-    cout << combo.show();
 
     if ( argc == 3 ) {
         sig_entrylist.saveToFile(fd);

@@ -245,7 +245,11 @@ namespace MultiLevel {
     void DeltaNode::assign( vector<DeltaNode *>::const_iterator first,
                  vector<DeltaNode *>::const_iterator last )
     {
-        children.assign( first, last );
+        children.clear();
+        vector<DeltaNode *>::const_iterator it;
+        for ( it = first ; it != last ; it++ ) {
+            pushCopy( *it );
+        }
     }
 
     void DeltaNode::assign( vector<off_t>::const_iterator first,
@@ -254,6 +258,9 @@ namespace MultiLevel {
         elements.assign( first, last );
     }
 
+    // Be careful. This function passes pointer.
+    // The thing pointed by this can be deleted
+    // somewhere else!
     void DeltaNode::push( DeltaNode *newchild ) {
         pushChild(newchild);
     }
@@ -261,6 +268,14 @@ namespace MultiLevel {
     void DeltaNode::push( off_t newelem ) 
     {
         pushElement(newelem);
+    }
+
+    void DeltaNode::pushCopy( DeltaNode *nd )
+    {
+        string buf = nd->serialize();
+        DeltaNode *newone;
+        newone->deSerialize(buf);
+        pushChild(newone);
     }
 
     string DeltaNode::serialize()
@@ -398,6 +413,15 @@ namespace MultiLevel {
             inits->pushElement( seq[pos] );
         }
         return;
+    }
+
+    // It tries to use LZ77 to find repeating pattern in
+    // the children
+    void DeltaNode::compressMe()
+    {
+        DeltaNode *compressedChild 
+                   = findPattern( this->children, 6 );
+
     }
 
     // input is the pos of a delta
@@ -629,12 +653,13 @@ namespace MultiLevel {
         this->logical_offset.buildPatterns( h_logical_off );
         this->length.buildPatterns( h_length );
         this->physical_offset.buildPatterns( h_physical_off );
-
+        this->original_chunk_id = proc;
     }
 
     string PatternCombo::show()
     {
         ostringstream oss;
+        oss << "[" << original_chunk_id << "] [" << new_chunk_id << "]" << endl;
         oss << "****LOGICAL_OFFSET**** :" << logical_offset.show() << endl;
         oss << "****    LENGTH         :" << length.show() << endl;
         oss << "**** PHYSICAL_OFFSET **:" << physical_offset.show() << endl;
