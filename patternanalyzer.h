@@ -78,6 +78,8 @@ namespace MultiLevel {
             int getNumOfLeaves();
             void buildPatterns( vector<off_t> seq );
             void compressMe();
+            static void deleteIt( DeltaNode * nd ); 
+            static void deleteIt( off_t anoff ) ;
     };
 
     class PatternCombo {
@@ -300,7 +302,7 @@ namespace MultiLevel {
                 }
             } else {
                 //(0,0,x)
-                //cout << "-no repeating neighor" << endl;
+                cout << "-no repeating neighor" << endl;
                 DeltaNode *newchild = new DeltaNode;
                 newchild->push( cur_tuple.next_symbol );
                 newchild->cnt = 1;
@@ -310,32 +312,29 @@ namespace MultiLevel {
             }
             cout << pattern_node->show() << endl;
         }
-      
-        /*
-        SigStack<IdxSigUnit> pattern_node_compressed;
-        vector<IdxSigUnit>::iterator it;
-        for ( it = pattern_node->the_stack.begin();
-              it != pattern_node->the_stack.end();
-              it++ )
+     
+        cout << "finished pattern finding" << endl;
+        // Now pattern_node's children are all new allocated in this
+        // function. We clean it up here after we make a copy of all stuff
+        // in pattern_node
+
+        // copying
+        DeltaNode *pattern_node_copy = new DeltaNode;
+        pattern_node_copy->deSerialize( pattern_node->serialize() );
+    
+        cout << "finished copying" << endl;
+
+        // free the space
+        vector<DeltaNode * >::iterator pit;
+        for ( pit =  pattern_node->children.begin() ;
+              pit != pattern_node->children.end() ;
+              pit++ )
         {
-            it->compressRepeats();
-            if (pattern_node_compressed.the_stack.empty()) {
-                //mlog(IDX_WARN, "Empty");
-                pattern_node_compressed.the_stack.push_back(*it);
-            } else {
-                bool ret;
-                ret = pattern_node_compressed.the_stack.back().append(*it);
-                if (ret == false) {
-                    pattern_node_compressed.the_stack.push_back(*it);
-                }
-            }
-            //ostringstream oss;
-            //oss << pattern_node_compressed.show();
-            ////mlog(IDX_WARN, "%s", oss.str().c_str());
+            DeltaNode::deleteIt( *pit );
         }
-        */
-        
-        return pattern_node;
+        delete pattern_node;
+        cout << "End of findPattern" << endl; 
+        return pattern_node_copy;
     }
 
     ////////////////////////////////////////////////////////////////
