@@ -431,15 +431,28 @@ namespace MultiLevel {
         
         elements = seq;
         compressMyInit(6);
+        
+        // compress the second time
+        children[1]->compressMe(20);
+        compressMyInit(6);
 
         // you can compress more by calling
         // compressMyInit()
         // or to compress deltas, call delta->compressMe for them
-        cout << this->show() << endl;
-        cout << "COOMPRESS second time" << endl;
-        compressMyInit(6);
-        cout << this->show() << endl;
-        
+       
+        /*
+        // compress deltas
+        vector<DeltaNode *>::const_iterator it;
+        for ( it =  children.begin() ;
+              it != children.end() ;
+              it++ )
+        {
+            if ( it != children.begin() ) {
+               (*it)->compressMe(10); 
+            }
+        }
+        */
+
         return;
     }
 
