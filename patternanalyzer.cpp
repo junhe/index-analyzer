@@ -464,15 +464,16 @@ namespace MultiLevel {
     // the children
     void DeltaNode::compressMe()
     {
-        assert( ! isLeaf() );
-        
-        cout << "COMPRESS ME!!!" << endl;
-        cout << this->show() << endl;
-        
-        DeltaNode *compressedChild 
-                   = findPattern( this->children, 20 );
-        freeChildren();
-        children = compressedChild->children;
+       
+        if ( isLeaf() ) {
+            DeltaNode *compressedChild 
+                       = findPattern( this->children, 20 );
+            freeChildren();
+        } else {
+            DeltaNode *compressedChild 
+                       = findPattern( this->elements, 20 );
+            children = compressedChild->children;
+        }
     }
 
     // input is the pos of a delta
