@@ -314,11 +314,24 @@ namespace MultiLevel {
             }
             
             //compress repeats in last child
+            assert( pattern_node->children.size() > 0 );
             DeltaNode *lastchild = pattern_node->children.back();
-            if ( lastchild->isLeaf() ) {
-                
-            } else {
 
+            if ( lastchild->isRepeating() ) {
+                if ( lastchild->isLeaf() ) {
+                    lastchild->cnt = lastchild->getNumOfDeltas();
+                    lastchild->elements.erase(
+                            lastchild->elements.begin()+1,
+                            lastchild->elements.end() ); //keep the first one
+                    assert( lastchild->elements.size() == 1 );
+                } else {
+                    lastchild->cnt = 
+                            lastchild->children.size() * lastchild->cnt;
+                    lastchild->children.erase(
+                            lastchild->children.begin() + 1,
+                            lastchild->children.end() );
+                    assert( lastchild->children.size() == 1 );
+                }
             }
 
             //cout << pattern_node->show() << endl;
