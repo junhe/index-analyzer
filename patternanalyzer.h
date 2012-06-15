@@ -81,6 +81,7 @@ namespace MultiLevel {
             static void deleteIt( DeltaNode * nd ); 
             static void deleteIt( off_t anoff ) ;
             void compressMyInit(int win_size = 6);
+            bool isRepeating() const;
     };
 
     class PatternCombo {
@@ -311,6 +312,15 @@ namespace MultiLevel {
                 
                 lookahead_win_start++;
             }
+            
+            //compress repeats in last child
+            DeltaNode *lastchild = pattern_node->children.back();
+            if ( lastchild->isLeaf() ) {
+                
+            } else {
+
+            }
+
             //cout << pattern_node->show() << endl;
         }
      

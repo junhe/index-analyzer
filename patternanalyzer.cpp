@@ -740,6 +740,37 @@ namespace MultiLevel {
         //freeChildren(); let the creator decide when to delete
     }
 
+    bool DeltaNode::isRepeating() const 
+    {
+        if ( isLeaf() ) {
+            vector<off_t>::const_iterator it;
+            for ( it =  elements.begin() ;
+                  it != elements.end() ;
+                  it++ )
+            {
+                if ( it != elements.begin() 
+                     && ( *it != *(it-1) ) ) 
+                {
+                    break;
+                }
+            }
+            return it == elements.end(); // empty is also repeating
+        } else {
+            vector<DeltaNode *>::const_iterator it;
+            for ( it =  children.begin() ;
+                  it != children.end() ;
+                  it++ )
+            {
+                if ( it != children.begin() 
+                     && ( !isEqual(*it, *(it-1)) ) ) 
+                {
+                    break;
+                }
+            }
+            return it == children.end(); // empty is also repeating
+        }
+    }
+
     ////////////////////////////////////////////////////////////////
     //  PatternCombo
     ////////////////////////////////////////////////////////////////
