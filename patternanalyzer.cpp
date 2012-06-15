@@ -428,7 +428,12 @@ namespace MultiLevel {
     {
         //cout << "in " << __FUNCTION__ << endl;
         init();
-        
+       
+        if ( seq.size() == 0 ) {
+            // no input, do nothing
+            return ;
+        }
+
         elements = seq;
         compressMyInit(6);
         
