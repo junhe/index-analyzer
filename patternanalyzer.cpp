@@ -433,8 +433,8 @@ namespace MultiLevel {
         compressMyInit(6);
         
         // compress the second time
-        //children[1]->compressMe(20);
-        //compressMyInit(6);
+        children[1]->compressMe(20);
+        compressMyInit(6);
 
         // you can compress more by calling
         // compressMyInit()
@@ -809,6 +809,58 @@ namespace MultiLevel {
         return oss.str();
     }
 
+    // format: 
+    //   [combo bodysize][orig id][new id][begin_timestamp][end_timestamp]
+    //            [log off bodysize][log off]
+    //            [length body size][length ]
+    //            [physi off body size][physi off]
+    string PatternCombo::serialize()
+    {
+        string buf;
+        header_t combo_bodysize = 0;
+        header_t log_bodysize = 0;
+        header_t len_bodysize = 0;
+        header_t phy_bodysize = 0;
+        
+        //serialize the big ones first
+        string logbuf = logical_offset.serialize();
+        string lenbuf = length.serialize();
+        string phybuf = physical_offset.serialize();
+        
+        combo_bodysize = sizeof(original_chunk_id)
+                         + sizeof(new_chunk_id)
+                         + sizeof(begin_timestamp)
+                         + sizeof(end_timestamp)
+                         + sizeof(header_t) * 3
+                         + logbuf.size()
+                         + lenbuf.size()
+                         + phybuf.size();
+        log_bodysize = logbuf.size();
+        len_bodysize = lenbuf.size();
+        phy_bodysize = phybuf.size();
+        
+        appendToBuffer( buf, &combo_bodysize, sizeof(combo_bodysize));
+        appendToBuffer( buf, &original_chunk_id, sizeof(original_chunk_id));
+        appendToBuffer( buf, &new_chunk_id, sizeof(new_chunk_id));
+        appendToBuffer( buf, &begin_timestamp, sizeof(begin_timestamp));
+        appendToBuffer( buf, &end_timestamp, sizeof(end_timestamp));
+        appendToBuffer( buf, &log_bodysize, sizeof(log_bodysize));
+        appendToBuffer( buf, logbuf.c_str(), logbuf.size() );
+        appendToBuffer( buf, &len_bodysize, sizeof(len_bodysize));
+        appendToBuffer( buf, lenbuf.c_str(), lenbuf.size() );
+        appendToBuffer( buf, &phy_bodysize, sizeof(phy_bodysize));
+        appendToBuffer( buf, phybuf.c_str(), phybuf.size());
+
+        return buf;       
+    }
+
+    PatternCombo::~PatternCombo()
+    {
+        // clean up 
+        logical_offset.freeChildren();
+        length.freeChildren();
+        physical_offset.freeChildren();
+    }
 
     ////////////////////////////////////////////////////////////////
     //  PatternUnit

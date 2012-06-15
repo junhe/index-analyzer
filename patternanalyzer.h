@@ -88,13 +88,18 @@ namespace MultiLevel {
         public:
             pid_t original_chunk_id;
             pid_t new_chunk_id;
+            double begin_timestamp;
+            double end_timestamp;
             DeltaNode logical_offset;
             DeltaNode length;
             DeltaNode physical_offset;
         
             void buildFromHostEntries( const vector<HostEntry> &entry_buf, 
                                        const pid_t &proc );
+            ~PatternCombo();
             string show();
+            string serialize();
+            void deSerialize();
     };
 
 
