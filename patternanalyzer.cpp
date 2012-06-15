@@ -365,7 +365,6 @@ namespace MultiLevel {
                 elements.resize( bodysize/sizeof(off_t) );
                 readFromBuf( buf, &elements[0], cur_start, bodysize);
             }
-            printVector(elements);
         } else {
             // It is a inner node in buf
             //cout << "--type is inner" << endl;
