@@ -467,12 +467,14 @@ namespace MultiLevel {
        
         if ( isLeaf() ) {
             DeltaNode *compressedChild 
-                       = findPattern( this->children, 20 );
-            freeChildren();
+                       = findPattern( this->elements, 20 );
+            this->elements.clear(); 
             children = compressedChild->children;
         } else {
+            // Not a leaf
             DeltaNode *compressedChild 
-                       = findPattern( this->elements, 20 );
+                       = findPattern( this->children, 20 );
+            freeChildren();
             children = compressedChild->children;
         }
     }
