@@ -297,7 +297,7 @@ namespace MultiLevel {
     string DeltaNode::serialize()
     {
         string buf;
-        cout << "++++++Start Serialzing " << this->show() << endl;
+        //cout << "++++++Start Serialzing " << this->show() << endl;
         if ( isLeaf() ) {
             //[L][REP][Pattern Size][elements]
             char buftype = LEAF; //L means leaf
@@ -308,8 +308,8 @@ namespace MultiLevel {
             if ( elembodysize > 0 ) {
                 appendToBuffer(buf, &elements[0], elembodysize);
             }
-            cout << "TYPE:[" << buftype << "] bodysize:" << elembodysize << endl;
-            cout << "++++++End   Serialzing " << this->show() << endl;
+            //cout << "TYPE:[" << buftype << "] bodysize:" << elembodysize << endl;
+            //cout << "++++++End   Serialzing " << this->show() << endl;
             return buf;
         } else {
             //[I][REP][Pattern Size][ [..] [...] ..  ]
@@ -333,10 +333,10 @@ namespace MultiLevel {
             header_t *psize = (header_t *) &buf[bodysize_pos]; 
             *psize = buf.size() 
                      - (sizeof(buftype) + sizeof(cnt) + sizeof(bodysize));
-            cout << "TYPE:[" << buftype << "] bodysize:" << *psize
-                 << "bodysize_pos" << bodysize_pos
-                 << "buf.size():" << buf.size() << endl;
-            cout << "++++++End   Serialzing " << this->show() << endl;
+            //cout << "TYPE:[" << buftype << "] bodysize:" << *psize
+            //     << "bodysize_pos" << bodysize_pos
+            //     << "buf.size():" << buf.size() << endl;
+            //cout << "++++++End   Serialzing " << this->show() << endl;
             return buf;
         }
     }
@@ -347,20 +347,20 @@ namespace MultiLevel {
         header_t bodysize = 0;
         int cur_start = 0;
 
-        cout << "***** START deSerialize " << endl;
+        //cout << "***** START deSerialize " << endl;
 
         readFromBuf( buf, &buftype, cur_start, sizeof(buftype));
         readFromBuf( buf, &cnt, cur_start, sizeof(cnt));
         readFromBuf( buf, &bodysize, cur_start, sizeof(bodysize));
       
-        cout << "**TYPE:" << buftype << endl;
-        cout << "cnt:" << cnt << endl;
-        cout << "bodysize:" << bodysize << endl;
-        cout << "bufsize:" << buf.size() << endl;
+        //cout << "**TYPE:" << buftype << endl;
+        //cout << "cnt:" << cnt << endl;
+        //cout << "bodysize:" << bodysize << endl;
+        //cout << "bufsize:" << buf.size() << endl;
         
         if ( buftype == LEAF ) {
             //only elements left in buf
-            cout << "--type is leaf" << endl;
+            //cout << "--type is leaf" << endl;
             if ( bodysize > 0 ) {
                 elements.resize( bodysize/sizeof(off_t) );
                 readFromBuf( buf, &elements[0], cur_start, bodysize);
@@ -368,10 +368,10 @@ namespace MultiLevel {
             printVector(elements);
         } else {
             // It is a inner node in buf
-            cout << "--type is inner" << endl;
+            //cout << "--type is inner" << endl;
             while ( cur_start < buf.size() ) {
-                cout << "----START----- cur_start:" << cur_start
-                     << " buf.size():" << buf.size() << endl;
+                //cout << "----START----- cur_start:" << cur_start
+                //     << " buf.size():" << buf.size() << endl;
                 char btype;
                 int bcnt;
                 header_t bbodysize;
@@ -386,9 +386,9 @@ namespace MultiLevel {
                 bufsize = sizeof(btype) + sizeof(bcnt) 
                           + sizeof(bbodysize) + bbodysize;
 
-                cout << "--------- TYPE:" << btype << " CNT:" << cnt
-                     << " bodysize:" << bbodysize 
-                     << " bufsize:" << bufsize << endl;
+                //cout << "--------- TYPE:" << btype << " CNT:" << cnt
+                //     << " bodysize:" << bbodysize 
+                //     << " bufsize:" << bufsize << endl;
                 string localbuf;
                 localbuf.resize( bufsize );
                 cur_start -= (sizeof(btype) + sizeof(bcnt)
@@ -400,12 +400,12 @@ namespace MultiLevel {
                 newchild->deSerialize(localbuf);
 
                 pushChild(newchild);
-                cout << "----END----- cur_start:" << cur_start
-                     << " buf.size():" << buf.size() << endl;
+                //cout << "----END----- cur_start:" << cur_start
+                //     << " buf.size():" << buf.size() << endl;
             }
         }
-        cout << this->show() << endl;
-        cout << "***** END   deSerialize " << endl;
+        //cout << this->show() << endl;
+        //cout << "***** END   deSerialize " << endl;
     }
 
     void DeltaNode::init()
