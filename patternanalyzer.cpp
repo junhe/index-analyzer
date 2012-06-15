@@ -433,8 +433,8 @@ namespace MultiLevel {
         compressMyInit(6);
         
         // compress the second time
-        children[1]->compressMe(20);
-        compressMyInit(6);
+        //children[1]->compressMe(20);
+        //compressMyInit(6);
 
         // you can compress more by calling
         // compressMyInit()

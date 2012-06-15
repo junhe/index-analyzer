@@ -243,13 +243,13 @@ namespace MultiLevel {
                                               win_size );
             //cout << "TUPLE:" << cur_tuple.show() << endl;
             if ( cur_tuple.isRepeatingNeighbor() ) {
-                DeltaNode tmpnode;
-                tmpnode.assign( lookahead_win_start,
+                DeltaNode winnode;
+                winnode.assign( lookahead_win_start,
                                 lookahead_win_start + cur_tuple.length);
                  
-                //cout << "--- in window length:" << tmpnode.getNumOfDeltas() << endl;
-                int lookwin_delta_len = tmpnode.getNumOfDeltas();
-                //cout << "--- " << tmpnode.show() << endl;
+                //cout << "--- in window length:" << winnode.getNumOfDeltas() << endl;
+                int lookwin_delta_len = winnode.getNumOfDeltas();
+                //cout << "--- " << winnode.show() << endl;
 
 
                 if ( pattern_node->isPopSafe( lookwin_delta_len ) ) {
@@ -276,16 +276,18 @@ namespace MultiLevel {
                     
                     // check if the last child(pattern) can be used to 
                     // represent the repeating neighbors
-                    int pattern_length = 0; //how many non-expanded deltas in lastchild
-                    pattern_length = lastchild->getNumOfDeltas()/lastchild->cnt;
-                    //cout << "--- pattern_length:" << pattern_length << endl;
+                    int lastchild_pattern_length = 0; 
+                    lastchild_pattern_length = lastchild->getNumOfDeltas()/lastchild->cnt;
+                    //cout << "--- lastchild_pattern_length:" << lastchild_pattern_length << endl;
                     
-                    if ( lookwin_delta_len == pattern_length ) { //TODO: need to justify this
+                    if ( lookwin_delta_len % lastchild_pattern_length == 0
+                         && lookwin_delta_len <= lastchild_pattern_length * lastchild->cnt ) 
+                    { //TODO: need to justify this
                         //the subdeltas in lookahead window repeats
                         //the last pattern in pattern_node
-                        lastchild->cnt +=  lookwin_delta_len/pattern_length;
+                        lastchild->cnt +=  lookwin_delta_len/lastchild_pattern_length;
                         //cout << "---- repeats last pattern. add " 
-                        //     << (lookwin_delta_len/pattern_length) << "to last pattern" << endl;
+                        //     << (lookwin_delta_len/lastchild_pattern_length) << "to last pattern" << endl;
 
                         lookahead_win_start += cur_tuple.length;
                     } else {
