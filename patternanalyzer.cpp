@@ -472,7 +472,7 @@ namespace MultiLevel {
         
         DeltaNode *compressedChild 
                    = findPattern( this->children, 20 );
-        //freeChildren();
+        freeChildren();
         children = compressedChild->children;
     }
 
