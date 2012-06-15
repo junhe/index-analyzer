@@ -424,41 +424,83 @@ namespace MultiLevel {
     //                    [Delta...] 
     //                                [Delta...] ...
     // [] is a child. [init] is the only place that can be splitted.
-    void DeltaNode::buildPatterns( vector<off_t> seq )
+    void DeltaNode::buildPatterns( const vector<off_t> &seq )
     {
         //cout << "in " << __FUNCTION__ << endl;
         init();
-        vector<off_t> deltas;
-        // [inits][deltas_pattern]
-        DeltaNode *deltas_pattern;
-        DeltaNode *inits = new DeltaNode;
-        deltas = buildDeltas( seq );
         
-        //printVector(deltas);
+        elements = seq;
+        compressMyInit();
 
-        deltas_pattern = findPattern( deltas, 6 );
-        pushChild(inits);
-        pushChild(deltas_pattern);
-
-        // handle the inits
-        if ( seq.size() == 0 ) {
-            // nothing can be done
-            return; 
-        }
-        int pos = 0;
-        inits->pushElement( seq[pos] );
-        vector<DeltaNode *>::const_iterator it;
-        for ( it =  deltas_pattern->children.begin() ;
-              it != deltas_pattern->children.end() ;
-              it++ )
-        {
-            pos += (*it)->getNumOfDeltas();
-            //cout << pos << "<" << seq.size() << endl;
-            assert( pos < seq.size() );
-            inits->pushElement( seq[pos] );
-        }
+        // you can compress more by calling
+        // compressMyInit()
+        // or to compress deltas, call delta->compressMe for them
+        
         return;
     }
+
+    // It compresses [init..] in this [init..][delta...][delta..]
+    // [init..] is splitted to [new init..][new delta..]
+    void DeltaNode::compressMyInit()
+    {
+        if ( isLeaf() ) {
+            // this: [init.. ]^1
+            // after: [[init..][delta..]..]
+            vector<off_t> deltas;
+            DeltaNode *deltas_pattern;
+            DeltaNode *inits = new DeltaNode;
+            
+            deltas = buildDeltas( elements );
+
+            deltas_pattern = findPattern( deltas, 6 );
+
+            // handle the inits
+            if ( elements.size() == 0 ) {
+                // nothing can be done
+                return; 
+            }
+            int pos = 0;
+            inits->pushElement( elements[pos] );
+            vector<DeltaNode *>::const_iterator it;
+            for ( it =  deltas_pattern->children.begin() ;
+                  it != deltas_pattern->children.end() ;
+                  it++ )
+            {
+                pos += (*it)->getNumOfDeltas();
+                //cout << pos << "<" << seq.size() << endl;
+                assert( pos < elements.size() );
+                inits->pushElement( elements[pos] );
+            }
+            elements.clear();
+            pushChild(inits);
+            pushChild(deltas_pattern);
+            return;           
+        } else {
+            // not a leaf
+            // this: [[init...][delta.A.][delta.B..]..]
+            // after:[[init new][delta new..] [delta.A.][delta.B..]..]
+
+            assert( this->children[0]->isLeaf() );
+            
+            this->children[0]->compressMyInit();
+            // this: [ [[init...][delta..]]  [delta.A.][delta.B..]..]
+
+            DeltaNode *compressedInit = this->children[0];
+
+            //move children of compressedInit up one level
+            this->children.erase( this->children.begin() );
+
+            vector<DeltaNode *>::const_reverse_iterator rit;
+            for ( rit =  compressedInit->children.rbegin() ;
+                  rit != compressedInit->children.rend() ;
+                  rit++ )
+            {
+                this->children.insert( this->children.begin(), *rit );
+            }
+            return;
+        }
+    }
+
 
     // It tries to use LZ77 to find repeating pattern in
     // the children
@@ -703,8 +745,6 @@ namespace MultiLevel {
             h_physical_off.push_back(iter->physical_offset);
         }
         
-        //printVector( h_logical_off );
-        //cout << "jjjjjjjjjjjjjjjjjjJ" << endl;
         this->logical_offset.buildPatterns( h_logical_off );
         this->length.buildPatterns( h_length );
         this->physical_offset.buildPatterns( h_physical_off );
