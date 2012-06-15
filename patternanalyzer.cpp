@@ -177,6 +177,9 @@ namespace MultiLevel {
             total += (*rit)->getNumOfDeltas();
             rit++;
         }
+        cout << "in " << __FUNCTION__ 
+            << " total: " << total
+            << " limit: " << limit << endl;
         return total == limit; //exactly limit of deltas can be poped out
     }
 
@@ -423,7 +426,7 @@ namespace MultiLevel {
         cout << this->show() << endl;
         
         DeltaNode *compressedChild 
-                   = findPattern( this->children, 6 );
+                   = findPattern( this->children, 20 );
         //freeChildren();
         children = compressedChild->children;
     }
