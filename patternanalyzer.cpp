@@ -777,6 +777,49 @@ namespace MultiLevel {
         }
     }
 
+    void DeltaNode::flattenMe()
+    {
+        if ( isLeaf() ) {
+            // cannot be flatter
+            return;
+        } else {
+            //if I have only one child,
+            // kill myself by becoming the child
+            
+            // Flat util cannot do so
+            while ( children.size() == 1 ) {
+                DeltaNode *pchild =  children[0];
+                if ( pchild->isLeaf() ) {
+                    assert ( elements.size() == 0 );
+                    elements = pchild->elements;
+                    cnt *= pchild->cnt;
+                    freeChildren();
+                    // Now I am a leaf
+                } else {
+                    //child has children
+                    children = pchild->children;
+                    cnt *= pchild->cnt;
+                    delete pchild; // you don't want to destroy
+                                   // whole child tree, since now
+                                   // this node link to some children of children
+
+
+                }
+            }
+            
+            // Now this becomes a leaf or it has many children
+            // recursive
+            vector<DeltaNode *>::iterator it;
+            for ( it = children.begin() ;
+                  it != children.end() ;
+                  it++ )
+            {
+                (*it)->flattenMe();
+            }
+        }
+    }
+
+
     ////////////////////////////////////////////////////////////////
     //  PatternCombo
     ////////////////////////////////////////////////////////////////

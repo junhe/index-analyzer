@@ -82,6 +82,7 @@ namespace MultiLevel {
             static void deleteIt( off_t anoff ) ;
             void compressMyInit(int win_size = 6);
             bool isRepeating() const;
+            void flattenMe();
     };
 
     class PatternCombo {
