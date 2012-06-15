@@ -214,7 +214,7 @@ namespace MultiLevel {
         while ( poped < n ) {
             DeltaNode *ptopop = children.back();
             poped += ptopop->getNumOfDeltas();
-            popChild();
+            children.pop_back();
         }
     }
 
@@ -424,7 +424,7 @@ namespace MultiLevel {
         
         DeltaNode *compressedChild 
                    = findPattern( this->children, 6 );
-        freeChildren();
+        //freeChildren();
         children = compressedChild->children;
     }
 
@@ -627,7 +627,7 @@ namespace MultiLevel {
 
     DeltaNode::~DeltaNode() 
     {
-        freeChildren();
+        //freeChildren(); let the creator decide when to delete
     }
 
     ////////////////////////////////////////////////////////////////

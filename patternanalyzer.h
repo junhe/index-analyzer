@@ -211,8 +211,6 @@ namespace MultiLevel {
 
 
     template <class TYPE>
-    DeltaNode *findPattern( vector<TYPE> const &deltas,
-                            int win_size );
 
     bool isEqual(DeltaNode* a, DeltaNode* b);
     bool isEqual(off_t a, off_t b);
@@ -227,7 +225,9 @@ namespace MultiLevel {
     DeltaNode* findPattern( vector<TYPE> const &deltas, int win_size )
     {
         typename vector<TYPE>::const_iterator lookahead_win_start; 
-        DeltaNode *pattern_node = new DeltaNode;
+        DeltaNode *pattern_node = new DeltaNode; // pattern_node only plays with
+                                                 // leaves in deltas, do not
+                                                 // create new leaves
         pattern_node->cnt = 1; //remind you that this level does not repeat
 
         lookahead_win_start = deltas.begin();
@@ -248,7 +248,7 @@ namespace MultiLevel {
                     first = lookahead_win_start;
                     last = lookahead_win_start + cur_tuple.length;
 
-                    DeltaNode *combo_node = new DeltaNode;  // TODO: now only work for off_t
+                    DeltaNode *combo_node = new DeltaNode;  
                     combo_node->assign(first, last);
                     combo_node->cnt = 2;
 
@@ -264,18 +264,7 @@ namespace MultiLevel {
                     // check if the last child(pattern) can be used to 
                     // represent the repeating neighbors
                     int pattern_length = 0; //how many non-expanded deltas in lastchild
-                    if ( lastchild->isLeaf() ) {
-                        pattern_length = lastchild->elements.size();
-                    } else {
-                        // lastchild is a inner node
-                        vector<DeltaNode *>::const_iterator it;
-                        for ( it =  lastchild->children.begin() ;
-                              it != lastchild->children.end() ;
-                              it++ )
-                        {
-                            pattern_length += (*it)->getNumOfDeltas();
-                        }
-                    }
+                    pattern_length = lastchild->getNumOfDeltas()/lastchild->cnt;
                     //cout << "--- pattern_length:" << pattern_length << endl;
                     
                     DeltaNode tmpnode;
