@@ -278,7 +278,7 @@ namespace MultiLevel {
         pushChild(newone);
     }
 
-    void pushCopy( off_t elm )
+    void DeltaNode::pushCopy( off_t elm )
     {
         push(elm);
     }
