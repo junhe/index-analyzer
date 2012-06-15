@@ -177,9 +177,9 @@ namespace MultiLevel {
             total += (*rit)->getNumOfDeltas();
             rit++;
         }
-        cout << "in " << __FUNCTION__ 
-            << " total: " << total
-            << " limit: " << limit << endl;
+        //cout << "in " << __FUNCTION__ 
+        //    << " total: " << total
+        //    << " limit: " << limit << endl;
         return total == limit; //exactly limit of deltas can be poped out
     }
 
