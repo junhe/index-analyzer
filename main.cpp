@@ -16,6 +16,19 @@ vector<HostEntry> bufferEntries(ifstream &idx_file, int &maxproc);
 
 int main(int argc, char ** argv)
 {
+    MultiLevel::DeltaNode dd,dd2;
+    dd.cnt = 3;
+    dd.pushElement(8);
+    cout << dd.show();
+
+    string buf;
+    buf = dd.serialize();
+    
+    dd2.deSerialize(buf);
+    cout << dd2.show();
+
+    return 0;
+
     IdxSignature mysig;
     ifstream idx_file;
     int fd;
@@ -60,6 +73,8 @@ int main(int argc, char ** argv)
         //sig_entrylist.append(mysig.generateIdxSignature(entry_buf, proc));
         MultiLevel::PatternCombo combo;
         combo.buildFromHostEntries(entry_buf, proc);
+        cout << combo.show();
+        combo.logical_offset.children.back()->compressMe();
         cout << combo.show();
     }
     
