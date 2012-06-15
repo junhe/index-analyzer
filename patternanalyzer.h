@@ -376,7 +376,7 @@ namespace MultiLevel {
         ostringstream showstr;
         showstr << "(" << offset 
             << ", " << length
-            //<< ", " << getSymbolStr(next_symbol) 
+            << ", " << getSymbolStr(next_symbol) 
             << ")" << endl;
         return showstr.str();
     }
