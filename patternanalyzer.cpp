@@ -83,20 +83,6 @@ namespace MultiLevel {
         start += size;
     }
 
-    template <class T>
-    void printVector( vector<T> vec )
-    {
-        typename vector<T>::const_iterator iiter;
-        
-        cout << "printVector: ";
-        for ( iiter = vec.begin() ;
-              iiter != vec.end() ;
-              iiter++ )
-        {
-            cout <<  *iiter << ",";
-        }
-        cout << endl;        
-    }
 
     ////////////////////////////////////////////////////////////////
     //  DeltaNode
@@ -284,10 +270,16 @@ namespace MultiLevel {
 
     void DeltaNode::pushCopy( DeltaNode *nd )
     {
+        //cout << "Start pushCopy" << endl;
         string buf = nd->serialize();
-        DeltaNode *newone;
+        //cout << nd->show() << endl;
+        //cout << "Serialized" << endl;
+        DeltaNode *newone = new DeltaNode;;
         newone->deSerialize(buf);
+        //cout << "deSerialized" << endl;
+        //cout << "newone:" << newone->show() << endl;
         pushChild(newone);
+        //cout << "End pushCopy" << endl;
     }
 
     void DeltaNode::pushCopy( off_t elm )
@@ -363,6 +355,7 @@ namespace MultiLevel {
             //only elements left in buf
             //cout << "--type is leaf" << endl;
             if ( bodysize > 0 ) {
+                //cout << "cur_start :" << cur_start << endl;
                 elements.resize( bodysize/sizeof(off_t) );
                 readFromBuf( buf, &elements[0], cur_start, bodysize);
             }
@@ -370,7 +363,7 @@ namespace MultiLevel {
             // It is a inner node in buf
             //cout << "--type is inner" << endl;
             while ( cur_start < buf.size() ) {
-                //cout << "----START----- cur_start:" << cur_start
+                //cout << "----STARTLOOP----- cur_start:" << cur_start
                 //     << " buf.size():" << buf.size() << endl;
                 char btype;
                 int bcnt;
@@ -400,7 +393,7 @@ namespace MultiLevel {
                 newchild->deSerialize(localbuf);
 
                 pushChild(newchild);
-                //cout << "----END----- cur_start:" << cur_start
+                //cout << "----ENDLOOP----- cur_start:" << cur_start
                 //     << " buf.size():" << buf.size() << endl;
             }
         }
@@ -835,11 +828,13 @@ namespace MultiLevel {
     //       [ A B C 1 2 3 ]^1
     void DeltaNode::append( const DeltaNode *other )
     {
-        assert ( this->isLeaf() == other->isLeaf() ); 
+        //cout << "START append" << endl;
         assert ( this->cnt == other->cnt && this->cnt == 1 );
-        assert ( this->elements.size() == other->elements.size() );
 
-        if ( this->isLeaf() ) {
+        if ( other->isLeaf() ) {
+            // This should be a leaf or empty
+            //cout << "--- Other is leaf" << endl;
+            assert( this->isLeaf() );
             vector<off_t>::const_iterator it;
             for ( it = other->elements.begin() ;
                   it != other->elements.end() ;
@@ -848,6 +843,13 @@ namespace MultiLevel {
                 this->elements.push_back( *it );  
             }
         } else {
+            // This should be empty or has same num
+            // of children as other.
+            // cannot be leaf
+            //cout << "--- Other is NOT leaf:" << other->show() << endl;
+            assert( (this->elements.empty() && this->children.empty())
+                    || this->children.size() == other->children.size() );
+
             vector<DeltaNode *>::const_iterator it;
             for ( it = other->children.begin() ;
                   it != other->children.end() ;
@@ -856,6 +858,7 @@ namespace MultiLevel {
                 this->pushCopy( *it );
             }
         }       
+        //cout << "END append" << endl;
 
         return;
     }
@@ -1042,6 +1045,10 @@ namespace MultiLevel {
                                other.begin_timestamp );
         end_timestamp = max( end_timestamp,
                              other.end_timestamp );
+        // append to this
+        chunkmap.insert( chunkmap.end(),
+                         other.chunkmap.begin(),
+                         other.chunkmap.end() );
     }
 
     ////////////////////////////////////////////////////////////////

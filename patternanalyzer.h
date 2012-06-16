@@ -18,6 +18,22 @@ namespace MultiLevel {
     #define INNER  'I'
     typedef int32_t header_t;
 
+    template <class T>
+    void printVector( vector<T> vec )
+    {
+        typename vector<T>::const_iterator iiter;
+        
+        cout << "printVector: ";
+        for ( iiter = vec.begin() ;
+              iiter != vec.end() ;
+              iiter++ )
+        {
+            cout <<  *iiter << ",";
+        }
+        cout << endl;        
+    }
+
+
     class LeafTuple {
         public:
             int leaf_index;
