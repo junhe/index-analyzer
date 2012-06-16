@@ -98,7 +98,7 @@ int main(int argc, char ** argv)
         cout << "APPENDED globalcombo:\n" << globalcombo.show() << endl;
     }
     cout << globalcombo.show() << endl;
-    cout << "totalsize: " << totalsize << endl;
+    cout << "totalsize: " << globalcombo.serialize().size() << endl;
     
     //cout << sig_entrylist.show();
 
