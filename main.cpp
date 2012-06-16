@@ -88,12 +88,13 @@ int main(int argc, char ** argv)
     int totalsize = 0;
     for ( proc = 0 ; proc <= maxproc ; proc++ ) {
         //sig_entrylist.append(mysig.generateIdxSignature(entry_buf, proc));
-        MultiLevel::PatternCombo combo;
+        MultiLevel::PatternCombo combo, combo2;
         combo.buildFromHostEntries(compressed, proc);
-        cout << combo.show();
         string tmpbuf = combo.serialize();
         cout << "serid size: " << tmpbuf.size() << endl;
         totalsize += tmpbuf.size();
+        combo2.deSerialize(tmpbuf);
+        cout << combo2.show();
     }
     cout << "totalsize: " << totalsize << endl;
     
