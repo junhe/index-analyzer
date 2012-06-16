@@ -100,7 +100,7 @@ namespace MultiLevel {
             bool isRepeating() const;
             void flattenMe();
             void append( const DeltaNode *other );
-            void compressDeltaChildren();
+            void compressDeltaChildren(int win_size);
     };
 
 

@@ -455,15 +455,15 @@ namespace MultiLevel {
         return;
     }
 
-    void DeltaNode::compressDeltaChildren() {
+    void DeltaNode::compressDeltaChildren(int win_size) {
         vector<DeltaNode *>::iterator it;
         for ( it =  children.begin();
               it != children.end() ;
               it++ ) 
         {
-            //if ( it != children.begin() ) {
-                (*it)->compressMe(6);
-            //}
+            if ( it != children.begin() ) {
+                (*it)->compressMe(win_size);
+            }
         }
         return;
     }
