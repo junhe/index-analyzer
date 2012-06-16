@@ -829,36 +829,66 @@ namespace MultiLevel {
     void DeltaNode::append( const DeltaNode *other )
     {
         //cout << "START append" << endl;
+        //cout << "THIS: " << this->show() << endl;
+        //cout << "OTHER:" << other->show() << endl;
+        
         assert ( this->cnt == other->cnt && this->cnt == 1 );
 
         if ( other->isLeaf() ) {
             // This should be a leaf or empty
-            //cout << "--- Other is leaf" << endl;
+            // cout << "--- Other is leaf" << endl;
             assert( this->isLeaf() );
-            vector<off_t>::const_iterator it;
-            for ( it = other->elements.begin() ;
-                  it != other->elements.end() ;
-                  it++ )
-            {
-                this->elements.push_back( *it );  
-            }
+            elements.insert( elements.end(),
+                             other->elements.begin(),
+                             other->elements.end() );
         } else {
             // This should be empty or has same num
             // of children as other.
             // cannot be leaf
-            //cout << "--- Other is NOT leaf:" << other->show() << endl;
+            //cout << "--- Other is NOT leaf. other.children.size() " 
+            //     <<  other->children.size()  << endl;
             assert( (this->elements.empty() && this->children.empty())
                     || this->children.size() == other->children.size() );
+            
+            vector<DeltaNode *>::const_iterator oit, tit;
+            
+            if ( this->children.empty() ) {
+                // copy all children of other in
+                for ( oit = other->children.begin() ;
+                      oit != other->children.end() ;
+                      oit++ )
+                {
+                    this->pushCopy( *oit );
+                }
+            } else {
+                for ( oit = other->children.begin(),
+                      tit = this->children.begin() ;
+                      oit != other->children.end(),
+                      tit != this->children.end() ;
+                      oit++, tit++ )
+                {
+                    assert( (*oit)->cnt == 1 );
+                    assert( (*tit)->cnt == 1 );
 
-            vector<DeltaNode *>::const_iterator it;
-            for ( it = other->children.begin() ;
-                  it != other->children.end() ;
-                  it++ )
-            {
-                this->pushCopy( *it );
+                    if ( (*oit)->isLeaf() ) {
+                        assert( (*tit)->isLeaf() );
+                        (*tit)->elements.insert( 
+                                (*tit)->elements.end(),
+                                (*oit)->elements.begin(),
+                                (*oit)->elements.end() );
+                    } else {
+                        assert( !(*tit)->isLeaf() );
+                        vector<DeltaNode *>::const_iterator ooit;
+                        for ( ooit = (*oit)->children.begin() ;
+                              ooit != (*oit)->children.end() ;
+                              ooit++ )
+                        {
+                            (*tit)->pushCopy( *ooit );
+                        }
+                    }
+                }
             }
-        }       
-        //cout << "END append" << endl;
+        }
 
         return;
     }

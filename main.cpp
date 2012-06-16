@@ -85,6 +85,7 @@ int main(int argc, char ** argv)
     cout << "compressed size " << compressed.size() << endl;
 
 
+    MultiLevel::PatternCombo globalcombo;
     int totalsize = 0;
     for ( proc = 0 ; proc <= maxproc ; proc++ ) {
         //sig_entrylist.append(mysig.generateIdxSignature(entry_buf, proc));
@@ -93,9 +94,10 @@ int main(int argc, char ** argv)
         string tmpbuf = combo.serialize();
         cout << "serid size: " << tmpbuf.size() << endl;
         totalsize += tmpbuf.size();
-        combo2.deSerialize(tmpbuf);
-        cout << combo2.show();
+        globalcombo.append( combo );
+        cout << "APPENDED globalcombo:\n" << globalcombo.show() << endl;
     }
+    cout << globalcombo.show() << endl;
     cout << "totalsize: " << totalsize << endl;
     
     //cout << sig_entrylist.show();
