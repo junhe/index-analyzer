@@ -455,6 +455,20 @@ namespace MultiLevel {
         return;
     }
 
+    void DeltaNode::compressDeltaChildren() {
+        vector<DeltaNode *>::iterator it;
+        for ( it =  children.begin();
+              it != children.end() ;
+              it++ ) 
+        {
+            //if ( it != children.begin() ) {
+                (*it)->compressMe(6);
+            //}
+        }
+        return;
+    }
+
+
     // It compresses [init..] in this [init..][delta...][delta..]
     // [init..] is splitted to [new init..][new delta..]
     void DeltaNode::compressMyInit(int win_size)
