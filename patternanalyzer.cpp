@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <stack>
+#include <algorithm>
 
 namespace MultiLevel {
     ////////////////////////////////////////////////////////////////
@@ -438,8 +439,8 @@ namespace MultiLevel {
         compressMyInit(6);
         
         // compress the second time
-        children[1]->compressMe(20);
-        compressMyInit(6);
+        //children[1]->compressMe(20);
+        //compressMyInit(6);
 
         // you can compress more by calling
         // compressMyInit()
@@ -819,6 +820,47 @@ namespace MultiLevel {
         }
     }
 
+    // It appends other to this.
+    // other and this must have:
+    //          1. cnt == 1
+    //          2. same number of children
+    // this: [ [ A ] [ B ] [ C ] ...]^1
+    // other: [ [ 1 ] [ 2 ] [ 3 ] ...]^1
+    // After:
+    //       [ [ A 1 ] [ B 2 ] [ C 3 ] ... ]^1
+    // if this and other are leaves
+    // this: [ A B C ]^1
+    // other:[ 1 2 3 ]^1
+    // After:
+    //       [ A B C 1 2 3 ]^1
+    void DeltaNode::append( const DeltaNode *other )
+    {
+        assert ( this->isLeaf() == other->isLeaf() ); 
+        assert ( this->cnt == other->cnt && this->cnt == 1 );
+        assert ( this->elements.size() == other->elements.size() );
+
+        if ( this->isLeaf() ) {
+            vector<off_t>::const_iterator it;
+            for ( it = other->elements.begin() ;
+                  it != other->elements.end() ;
+                  it++ )
+            {
+                this->elements.push_back( *it );  
+            }
+        } else {
+            vector<DeltaNode *>::const_iterator it;
+            for ( it = other->children.begin() ;
+                  it != other->children.end() ;
+                  it++ )
+            {
+                this->pushCopy( *it );
+            }
+        }       
+
+        return;
+    }
+
+
 
     ////////////////////////////////////////////////////////////////
     //  PatternCombo
@@ -845,13 +887,31 @@ namespace MultiLevel {
         this->logical_offset.buildPatterns( h_logical_off );
         this->length.buildPatterns( h_length );
         this->physical_offset.buildPatterns( h_physical_off );
-        this->original_chunk_id = proc;
+        
+        if ( !this->chunkmap.empty() &&
+             this->chunkmap.back().original_chunk_id == proc ) {
+            this->chunkmap.back().cnt += h_logical_off.size();
+        } else {
+            ChunkMap map;
+            map.original_chunk_id = proc;
+            map.cnt = h_logical_off.size();
+            this->chunkmap.push_back( map );
+        }
     }
 
     string PatternCombo::show()
     {
         ostringstream oss;
-        oss << "[" << original_chunk_id << "] [" << new_chunk_id << "]" << endl;
+        vector<ChunkMap>::const_iterator it;
+        for ( it = chunkmap.begin() ;
+              it != chunkmap.end() ;
+              it++ )
+        {
+            oss << "[" << it->original_chunk_id 
+                << ", " << it->new_chunk_id 
+                << ", " << it->cnt << "]";
+        }
+        oss << endl;
         oss << "****LOGICAL_OFFSET**** :" << logical_offset.show() << endl;
         oss << "****    LENGTH         :" << length.show() << endl;
         oss << "**** PHYSICAL_OFFSET **:" << physical_offset.show() << endl;
@@ -859,7 +919,8 @@ namespace MultiLevel {
     }
 
     // format: 
-    //   [combo bodysize][orig id][new id][begin_timestamp][end_timestamp]
+    //   [combo bodysize][begin_timestamp][end_timestamp]
+    //            [chunkmap bodysize][chunkmap]
     //            [log off bodysize][log off]
     //            [length body size][length ]
     //            [physi off body size][physi off]
@@ -867,6 +928,7 @@ namespace MultiLevel {
     {
         string buf;
         header_t combo_bodysize = 0;
+        header_t chunkmap_bodysize = 0;
         header_t log_bodysize = 0;
         header_t len_bodysize = 0;
         header_t phy_bodysize = 0;
@@ -876,11 +938,11 @@ namespace MultiLevel {
         string lenbuf = length.serialize();
         string phybuf = physical_offset.serialize();
         
-        combo_bodysize = sizeof(original_chunk_id)
-                         + sizeof(new_chunk_id)
-                         + sizeof(begin_timestamp)
+        chunkmap_bodysize = sizeof(ChunkMap) * chunkmap.size();
+        combo_bodysize = sizeof(begin_timestamp)
                          + sizeof(end_timestamp)
-                         + sizeof(header_t) * 3
+                         + sizeof(header_t) * 4
+                         + chunkmap_bodysize
                          + logbuf.size()
                          + lenbuf.size()
                          + phybuf.size();
@@ -889,10 +951,14 @@ namespace MultiLevel {
         phy_bodysize = phybuf.size();
         
         appendToBuffer( buf, &combo_bodysize, sizeof(combo_bodysize));
-        appendToBuffer( buf, &original_chunk_id, sizeof(original_chunk_id));
-        appendToBuffer( buf, &new_chunk_id, sizeof(new_chunk_id));
         appendToBuffer( buf, &begin_timestamp, sizeof(begin_timestamp));
         appendToBuffer( buf, &end_timestamp, sizeof(end_timestamp));
+        
+        appendToBuffer( buf, &chunkmap_bodysize, sizeof(chunkmap_bodysize));
+        if ( chunkmap_bodysize > 0 ) {
+            appendToBuffer( buf, &chunkmap[0], chunkmap_bodysize );
+        }
+        
         appendToBuffer( buf, &log_bodysize, sizeof(log_bodysize));
         appendToBuffer( buf, logbuf.c_str(), logbuf.size() );
         appendToBuffer( buf, &len_bodysize, sizeof(len_bodysize));
@@ -911,6 +977,7 @@ namespace MultiLevel {
     void PatternCombo::deSerialize( string buf )
     {
         header_t combo_bodysize;
+        header_t chunkmap_bodysize;
         header_t log_bodysize = 0;
         header_t len_bodysize = 0;
         header_t phy_bodysize = 0;
@@ -918,14 +985,18 @@ namespace MultiLevel {
         string tmpbuf;
         
         readFromBuf( buf, &combo_bodysize,    cur_pos, sizeof(combo_bodysize));
-        readFromBuf( buf, &original_chunk_id, cur_pos, sizeof(original_chunk_id));
-        readFromBuf( buf, &new_chunk_id,      cur_pos, sizeof(new_chunk_id));
         readFromBuf( buf, &begin_timestamp,   cur_pos, sizeof(begin_timestamp));
         readFromBuf( buf, &end_timestamp,     cur_pos, sizeof(end_timestamp));
         
         //cout << "COMBO deSerializ..." << endl;
         //cout << "combo_bodysize " << combo_bodysize << endl;
         //cout << "original_chunk_id " << original_chunk_id << endl;
+        readFromBuf( buf, &chunkmap_bodysize, cur_pos, sizeof(chunkmap_bodysize));
+        
+        if ( chunkmap_bodysize > 0 ) {
+            chunkmap.resize( chunkmap_bodysize/sizeof(ChunkMap) );
+            readFromBuf( buf, &chunkmap[0], cur_pos, chunkmap_bodysize );
+        }
 
         readFromBuf( buf, &log_bodysize,      cur_pos, sizeof(log_bodysize));
         //cout << "log_bodysize: " << log_bodysize << endl;
@@ -960,6 +1031,17 @@ namespace MultiLevel {
         logical_offset.freeChildren();
         length.freeChildren();
         physical_offset.freeChildren();
+    }
+
+    void PatternCombo::append( const PatternCombo &other )
+    {
+        this->logical_offset.append( &other.logical_offset);
+        this->length.append( &other.length );
+        this->physical_offset.append( &other.physical_offset );
+        begin_timestamp = max( begin_timestamp,
+                               other.begin_timestamp );
+        end_timestamp = max( end_timestamp,
+                             other.end_timestamp );
     }
 
     ////////////////////////////////////////////////////////////////

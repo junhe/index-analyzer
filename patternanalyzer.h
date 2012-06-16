@@ -83,12 +83,20 @@ namespace MultiLevel {
             void compressMyInit(int win_size = 6);
             bool isRepeating() const;
             void flattenMe();
+            void append( const DeltaNode *other );
+    };
+
+
+    class ChunkMap {
+        public:
+            pid_t original_chunk_id;
+            pid_t new_chunk_id;
+            int cnt;
     };
 
     class PatternCombo {
         public:
-            pid_t original_chunk_id;
-            pid_t new_chunk_id;
+            vector<ChunkMap> chunkmap;
             double begin_timestamp;
             double end_timestamp;
             DeltaNode logical_offset;
@@ -101,6 +109,7 @@ namespace MultiLevel {
             string show();
             string serialize();
             void deSerialize(string );
+            void append( const PatternCombo &other );
     };
 
 
