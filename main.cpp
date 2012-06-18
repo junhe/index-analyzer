@@ -98,7 +98,6 @@ int main(int argc, char ** argv)
         //cout << "APPENDED globalcombo:\n" << globalcombo.show() << endl;
     }
   
-    //cout << "expanded?:" << globalcombo.expandBadCompression() << endl;
     
     globalcombo.logical_offset.compressMyInit(6);
     globalcombo.logical_offset.compressDeltaChildren(10);
@@ -106,6 +105,8 @@ int main(int argc, char ** argv)
     globalcombo.length.compressDeltaChildren(10);
     globalcombo.physical_offset.compressMyInit(6);
     globalcombo.physical_offset.compressDeltaChildren(10);
+    
+    cout << "expanded?:" << globalcombo.expandBadCompression() << endl;
     
     string combuf = globalcombo.serialize();
     //cout << "FINAL: " << globalcombo.show() << endl;
