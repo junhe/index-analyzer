@@ -83,7 +83,7 @@ int main(int argc, char ** argv)
     entry_buf.clear();
 
     for ( proc = 0 ; proc <= maxproc ; proc++ ) {
-        sig_entrylist.append(mysig.generateIdxSignature(entry_buf, proc));
+        sig_entrylist.append(mysig.generateIdxSignature(compressed, proc));
     }
     
     cout << sig_entrylist.show();
