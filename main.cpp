@@ -34,7 +34,7 @@ int main(int argc, char ** argv)
 
     idx_file.open(argv[1]);
     if (idx_file.is_open()) {
-        cerr << "map file is open: " << argv[1]  << endl;
+        //cerr << "map file is open: " << argv[1]  << endl;
     } else {
         cerr << "map file is not open." << argv[1] << endl;
         exit(-1);
@@ -47,7 +47,7 @@ int main(int argc, char ** argv)
             cerr << "index file is not open" << endl;
             exit(-1);
         } else {
-            cerr << "index file is open" << endl;
+            //cerr << "index file is open" << endl;
         }
     }
 
@@ -56,7 +56,7 @@ int main(int argc, char ** argv)
     entry_buf = bufferEntries(idx_file, maxproc);
   
 
-    cout << "entry buffered" << endl;
+    //cout << "entry buffered" << endl;
     int proc;
     // compress contiguous
     vector<HostEntry> compressed;
@@ -81,9 +81,9 @@ int main(int argc, char ** argv)
         }
     }
 
-    cout << "old size: " << entry_buf.size() << endl;
-    cout << "compressed size " << compressed.size() << endl;
-
+    //cout << "old size: " << entry_buf.size() << endl;
+    //cout << "compressed size " << compressed.size() << endl;
+    entry_buf.clear();
 
     MultiLevel::PatternCombo globalcombo;
     int totalsize = 0;
@@ -92,14 +92,86 @@ int main(int argc, char ** argv)
         MultiLevel::PatternCombo combo, combo2;
         combo.buildFromHostEntries(compressed, proc);
         string tmpbuf = combo.serialize();
-        cout << "serid size: " << tmpbuf.size() << endl;
+        //cout << "serid size: " << tmpbuf.size() << endl;
         totalsize += tmpbuf.size();
         globalcombo.append( combo );
-        cout << "APPENDED globalcombo:\n" << globalcombo.show() << endl;
+        //cout << "APPENDED globalcombo:\n" << globalcombo.show() << endl;
     }
-    cout << globalcombo.show() << endl;
-    cout << "totalsize: " << globalcombo.serialize().size() << endl;
+  
+    //cout << "expanded?:" << globalcombo.expandBadCompression() << endl;
     
+    globalcombo.logical_offset.compressMyInit(6);
+    globalcombo.logical_offset.compressDeltaChildren(10);
+    globalcombo.length.compressMyInit(6);
+    globalcombo.length.compressDeltaChildren(10);
+    globalcombo.physical_offset.compressMyInit(6);
+    globalcombo.physical_offset.compressDeltaChildren(10);
+    
+    string combuf = globalcombo.serialize();
+    //cout << "FINAL: " << globalcombo.show() << endl;
+    cout << compressed.size()*48 << " " << combuf.size() << endl;
+
+
+    /*
+    globalcombo.logical_offset.compressMyInit(3);
+    globalcombo.logical_offset.compressDeltaChildren(10);
+    cout << "totalsize: " << globalcombo.serialize().size() << endl;
+    cout << globalcombo.show() << endl;
+    globalcombo.length.compressMyInit(6);
+    globalcombo.length.compressDeltaChildren(10);
+    globalcombo.physical_offset.compressMyInit(6);
+    globalcombo.physical_offset.compressDeltaChildren(10);
+
+    cout << "COMPRESSED:" << globalcombo.show() << endl;
+    cout << "compressed totalsize: " << globalcombo.serialize().size() << endl;
+    
+    globalcombo.logical_offset.compressMyInit(6);
+    globalcombo.logical_offset.compressDeltaChildren( 20 );
+   
+    cout << "COMPRESSED2:" << globalcombo.show() << endl;
+    cout << "compressed2 totalsize: " << globalcombo.serialize().size() << endl;
+
+    globalcombo.logical_offset.compressMyInit(6);
+    globalcombo.logical_offset.compressDeltaChildren( 40 );
+    
+    cout << "COMPRESSED3:" << globalcombo.show() << endl;
+    cout << "compressed3 totalsize: " << globalcombo.serialize().size() << endl;
+
+    globalcombo.logical_offset.compressMyInit(10);
+    globalcombo.logical_offset.compressDeltaChildren( 20 );
+    
+    cout << "COMPRESSED3:" << globalcombo.show() << endl;
+    cout << "compressed3 totalsize: " << globalcombo.serialize().size() << endl;
+
+    globalcombo.logical_offset.compressMyInit(10);
+    globalcombo.logical_offset.compressDeltaChildren( 20 );
+    
+    cout << "COMPRESSED3:" << globalcombo.show() << endl;
+    cout << "compressed3 totalsize: " << globalcombo.serialize().size() << endl;
+
+    globalcombo.logical_offset.compressMyInit(20);
+    globalcombo.logical_offset.compressDeltaChildren( 20 );
+    
+    cout << "COMPRESSED3:" << globalcombo.show() << endl;
+    cout << "compressed3 totalsize: " << globalcombo.serialize().size() << endl;
+
+    int i;
+    int sizeofcombo = globalcombo.getNumOfVal();
+    cout << "size of compressed:" << compressed.size() << endl;
+    cout << "sizeofcombo:" << sizeofcombo << endl;
+    for ( i = 0 ; i < sizeofcombo ; i++ ) {
+        cout << globalcombo.logical_offset.recoverPos(i) << " : "
+             << compressed[i].logical_offset << " | "
+             << globalcombo.length.recoverPos(i) << " : "
+             << compressed[i].length << " | "
+             << globalcombo.physical_offset.recoverPos(i) << " : "
+             << compressed[i].physical_offset 
+             << "   " << (globalcombo.logical_offset.recoverPos(i) == compressed[i].logical_offset)
+             << endl; 
+    }
+
+    */
+
     //cout << sig_entrylist.show();
 
     if ( argc == 3 ) {
@@ -108,7 +180,7 @@ int main(int argc, char ** argv)
         close(fd);
     }
 
-    cerr<<"End of the program"<<endl;
+    //cerr<<"End of the program"<<endl;
     return 0;
 }
 
@@ -156,7 +228,7 @@ vector<HostEntry> bufferEntries(ifstream &idx_file, int &numofproc)
         }
 
         if ( line[0] == '#' ) {
-            cerr << "skiping---" << line << endl;
+            //cerr << "skipping---" << line << endl;
             continue;
         }
         
@@ -173,6 +245,7 @@ vector<HostEntry> bufferEntries(ifstream &idx_file, int &numofproc)
                 back_inserter<vector<string> >(tokens));
 
         idx_entry.id = atoi( tokens[0].c_str() );
+
         if ( idx_entry.id > numofproc ) {
             numofproc = idx_entry.id;
         }

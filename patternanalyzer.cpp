@@ -1137,6 +1137,24 @@ namespace MultiLevel {
         
     }
 
+    bool PatternCombo::expandBadCompression()
+    {
+        bool expanded = false;
+        if ( ! logical_offset.isCompressionRatioGood() ) {
+            logical_offset.expandMe();
+            expanded = true;
+        }
+        if ( ! length.isCompressionRatioGood() ) {
+            length.expandMe();
+            expanded = true;
+        }
+        if ( ! physical_offset.isCompressionRatioGood() ) {
+            physical_offset.expandMe();
+            expanded = true;
+        }
+        return expanded;
+    }
+
     ////////////////////////////////////////////////////////////////
     //  PatternUnit
     ////////////////////////////////////////////////////////////////

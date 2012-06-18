@@ -134,6 +134,7 @@ namespace MultiLevel {
                                          off_t rlength,
                                          off_t rphysical_offset,
                                          pid_t rorigin_id );
+            bool expandBadCompression();
     };
 
 
