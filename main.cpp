@@ -206,7 +206,7 @@ void replaceSubStr( string del, string newstr, string &line, int startpos = 0 )
     while (found != string::npos) 
     {
         line.replace(found, del.size(), newstr);  
-        found = line.find(del);
+        found = line.find(del, startpos);
     }
 }
 
@@ -244,7 +244,7 @@ vector<HostEntry> bufferEntries(ifstream &idx_file, int &numofproc)
         copy(istream_iterator<string>(iss),
                 istream_iterator<string>(),
                 back_inserter<vector<string> >(tokens));
-
+        assert( tokens.size() == 9 );
         idx_entry.id = atoi( tokens[0].c_str() );
 
         if ( idx_entry.id > numofproc ) {
