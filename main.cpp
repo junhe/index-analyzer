@@ -198,11 +198,11 @@ void deleteSubStr( string del, string &line )
     }
 }
 
-void replaceSubStr( string del, string newstr, string &line ) 
+void replaceSubStr( string del, string newstr, string &line, int startpos = 0 ) 
 {
     size_t found;
     
-    found = line.find(del);
+    found = line.find(del, startpos);
     while (found != string::npos) 
     {
         line.replace(found, del.size(), newstr);  
@@ -235,9 +235,9 @@ vector<HostEntry> bufferEntries(ifstream &idx_file, int &numofproc)
         
         replaceSubStr( "[", " ", line );
         replaceSubStr( "]", " ", line );
-        replaceSubStr( ". ", " ", line );
-        //cerr << line << endl;
-
+        replaceSubStr( ".", " ", line, 107 ); //107 is the byte # where chunk info starts
+        cerr << line << endl;
+        
         vector<string> tokens;
         vector<string>::iterator iter;
         istringstream iss(line);
