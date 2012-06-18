@@ -724,6 +724,7 @@ namespace MultiLevel {
                 // this is the DeltaNode of [init...]
                 assert( (*rit)->isLeaf() );
                 assert( rpos < (*rit)->elements.size() );
+                assert( (*rit)->cnt == 1 );
                 off_t deltasum = sumVector( deltalist );
                 //cout << "in [init..]" << "deltasum:" << deltasum
                 //     << "rpos: " << rpos
@@ -736,13 +737,6 @@ namespace MultiLevel {
                 rpos = tup.leaf_index;
                 //cout << "tup.leaf_index: " << tup.leaf_index << endl;
                 //cout << "delta list:" ;
-                vector<off_t>::iterator it;
-                for ( it = deltalist.begin();
-                      it != deltalist.end();
-                      it++ )
-                {
-                    //cout << *it << " " ;
-                }
                 //cout << endl;
             }
         }
@@ -916,6 +910,28 @@ namespace MultiLevel {
         } else {
             return children.front()->getNumOfDeltas() 
                    < (children.back()->getNumOfDeltas() / 2);
+        }
+    }
+
+    // This node must not be a leaf
+    // expand me from a tree to totally flat sequence of number, just
+    // like: [1 2 3 4 5] ^1
+    // after expanding, this becomes a tree with one fat leaf
+    void DeltaNode::expandMe()
+    {
+        if ( isLeaf() ) {
+            // Leaf cannot be expanded
+            return;
+        } else {
+            int valsize = children.back()->getNumOfDeltas() + 1 ;
+            int i;
+            DeltaNode *newchild = new DeltaNode;
+
+            for ( i = 0 ; i < valsize ; i++ ) {
+                newchild->pushElement( recoverPos(i) );            
+            }
+            freeChildren();
+            pushChild(newchild);
         }
     }
 
