@@ -236,7 +236,7 @@ vector<HostEntry> bufferEntries(ifstream &idx_file, int &numofproc)
         replaceSubStr( "[", " ", line );
         replaceSubStr( "]", " ", line );
         replaceSubStr( ".", " ", line, 107 ); //107 is the byte # where chunk info starts
-        cerr << line << endl;
+        //cerr << line << endl;
         
         vector<string> tokens;
         vector<string>::iterator iter;

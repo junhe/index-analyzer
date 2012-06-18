@@ -932,6 +932,42 @@ namespace MultiLevel {
             }
             freeChildren();
             pushChild(newchild);
+
+            /*
+            assert( elements.empty() ); 
+            stack<DeltaNode *> ndstack;
+
+            ndstack.push( this );
+            while ( !ndstack.empty() ) {
+                DeltaNode *nd = ndstack.top();
+                ndstack.pop();
+
+                if ( nd->isLeaf() ) {
+                    int icnt;
+                    for ( icnt = 0 ; icnt < nd->cnt ; icnt++ ) {
+                        vector<off_t>::const_iterator eit;
+                        for ( eit = nd->elements.begin();
+                              eit != nd->elements.end();
+                              eit++ )
+                        {
+                            if ( elements.empty() ) {
+                                this->elements.push_back(*eit);
+                            } else {
+                                this->elements.push_back( )
+                                        
+                            }
+                        }                        
+                    }
+                } else {
+                    vector<DeltaNode *>::const_reverse_iterator rit;
+                    for ( rit = nd->children.rbegin() ;
+                          rit != nd->children.rend() ;
+                          rit++ ) {
+                        ndstack.push(*rit);
+                    }
+                }
+            }
+            */
         }
     }
 
