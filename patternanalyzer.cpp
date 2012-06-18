@@ -1128,6 +1128,14 @@ namespace MultiLevel {
         return logical_offset.children.back()->getNumOfDeltas()+1;
     }
 
+    
+    bool PatternCombo::getDetailsByLogicalOff( const off_t logical,
+                                 off_t rlength,
+                                 off_t rphysical_offset,
+                                 pid_t rorigin_id )
+    {
+        
+    }
 
     ////////////////////////////////////////////////////////////////
     //  PatternUnit

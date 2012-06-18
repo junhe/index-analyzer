@@ -130,6 +130,10 @@ namespace MultiLevel {
             void deSerialize(string );
             void append( const PatternCombo &other );
             int getNumOfVal();
+            bool getDetailsByLogicalOff( const off_t logical,
+                                         off_t rlength,
+                                         off_t rphysical_offset,
+                                         pid_t rorigin_id );
     };
 
 
