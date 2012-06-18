@@ -1095,6 +1095,14 @@ namespace MultiLevel {
                          other.chunkmap.end() );
     }
 
+    //Get how many offsets are in this combo
+    int PatternCombo::getNumOfVal()
+    {
+        assert(logical_offset.children.size() > 0);
+        return logical_offset.children.back()->getNumOfDeltas()+1;
+    }
+
+
     ////////////////////////////////////////////////////////////////
     //  PatternUnit
     ////////////////////////////////////////////////////////////////

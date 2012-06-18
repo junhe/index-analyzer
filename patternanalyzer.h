@@ -127,6 +127,7 @@ namespace MultiLevel {
             string serialize();
             void deSerialize(string );
             void append( const PatternCombo &other );
+            int getNumOfVal();
     };
 
 
