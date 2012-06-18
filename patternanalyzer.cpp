@@ -907,7 +907,17 @@ namespace MultiLevel {
         return;
     }
 
-
+    
+    bool DeltaNode::isCompressionRatioGood()
+    {
+        if ( isLeaf() ) {
+            // [ x x x ] ^y are allways good
+            return true; 
+        } else {
+            return children.front()->getNumOfDeltas() 
+                   < (children.back()->getNumOfDeltas() / 2);
+        }
+    }
 
     ////////////////////////////////////////////////////////////////
     //  PatternCombo

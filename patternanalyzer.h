@@ -101,6 +101,7 @@ namespace MultiLevel {
             void flattenMe();
             void append( const DeltaNode *other );
             void compressDeltaChildren(int win_size);
+            bool isCompressionRatioGood();
     };
 
 
