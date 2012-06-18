@@ -55,6 +55,33 @@ int main(int argc, char ** argv)
     entry_buf = bufferEntries(idx_file, maxproc);
     
     int proc;
+    // compress contiguous
+    vector<HostEntry> compressed;
+    for ( proc = 0 ; proc <= maxproc ; proc++ ) {
+        vector<HostEntry>::iterator it;
+        for ( it = entry_buf.begin() ;
+              it != entry_buf.end() ;
+              it++ ) 
+        {
+            if ( it->id != proc )
+                continue;
+
+            if ( !compressed.empty() &&
+                 compressed.back().id == it->id &&
+                 compressed.back().logical_offset + 
+                    compressed.back().length == it->logical_offset ) 
+            {
+                compressed.back().length += it->length;
+            } else {
+                compressed.push_back( *it );
+            }
+        }
+    }
+
+    cout << "old size: " << entry_buf.size() << endl;
+    cout << "compressed size " << compressed.size() << endl;
+    entry_buf.clear();
+
     for ( proc = 0 ; proc <= maxproc ; proc++ ) {
         sig_entrylist.append(mysig.generateIdxSignature(entry_buf, proc));
     }
@@ -84,15 +111,15 @@ void deleteSubStr( string del, string &line )
     }
 }
 
-void replaceSubStr( string del, string newstr, string &line ) 
+void replaceSubStr( string del, string newstr, string &line, int startpos = 0 ) 
 {
     size_t found;
     
-    found = line.find(del);
+    found = line.find(del, startpos);
     while (found != string::npos) 
     {
         line.replace(found, del.size(), newstr);  
-        found = line.find(del);
+        found = line.find(del, startpos);
     }
 }
 
@@ -121,7 +148,7 @@ vector<HostEntry> bufferEntries(ifstream &idx_file, int &numofproc)
         
         replaceSubStr( "[", " ", line );
         replaceSubStr( "]", " ", line );
-        replaceSubStr( ". ", " ", line );
+        replaceSubStr( ".", " ", line, 107 ); //107 is the byte # where chunk info starts
         //cerr << line << endl;
 
         vector<string> tokens;
@@ -130,8 +157,9 @@ vector<HostEntry> bufferEntries(ifstream &idx_file, int &numofproc)
         copy(istream_iterator<string>(iss),
                 istream_iterator<string>(),
                 back_inserter<vector<string> >(tokens));
-
+        assert( tokens.size() == 9 );
         idx_entry.id = atoi( tokens[0].c_str() );
+
         if ( idx_entry.id > numofproc ) {
             numofproc = idx_entry.id;
         }
