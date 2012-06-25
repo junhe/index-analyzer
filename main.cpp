@@ -130,15 +130,15 @@ void deleteSubStr( string del, string &line )
     }
 }
 
-void replaceSubStr( string del, string newstr, string &line ) 
+void replaceSubStr( string del, string newstr, string &line, int startpos = 0 ) 
 {
     size_t found;
     
-    found = line.find(del);
+    found = line.find(del, startpos);
     while (found != string::npos) 
     {
         line.replace(found, del.size(), newstr);  
-        found = line.find(del);
+        found = line.find(del, startpos);
     }
 }
 
@@ -168,7 +168,7 @@ void bufferEntries(ifstream &idx_file, MPI_File fh)
         
         replaceSubStr( "[", " ", line );
         replaceSubStr( "]", " ", line );
-        replaceSubStr( ". ", " ", line );
+        replaceSubStr( ".", " ", line, 107 ); //107 is the byte # where chunk info starts
         //cout << line << endl;
 
         vector<string> tokens;
