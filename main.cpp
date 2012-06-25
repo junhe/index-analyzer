@@ -49,7 +49,7 @@ int main(int argc, char ** argv)
 
     if ( argc != 3 ) {
         if ( rank == 0 ) {
-            printf("Usage: mpirun -np num-of-proc-in-map-file %s" 
+            printf("Usage: mpirun -np num-of-proc-in-map-file %s " 
                    "mapfile output-file\n", argv[0] );
         }
         MPI_Finalize();
