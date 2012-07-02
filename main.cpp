@@ -178,7 +178,7 @@ void bufferEntries(ifstream &idx_file, MPI_File fh)
                 istream_iterator<string>(),
                 back_inserter<vector<string> >(tokens));
 
-        idx_entry.id = atoi( tokens[0].c_str() );
+        idx_entry.id = atoi( tokens[7].c_str() );
         if ( idx_entry.id > maxprocnum ) {
             maxprocnum = idx_entry.id;
         }
