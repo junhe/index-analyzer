@@ -36,6 +36,7 @@ MPI_Status stat;
 double openTime = 0, rwTime = 0, closeTime = 0;
 double start, end;
 off_t totalBytes = 0;
+char mode;
 
 void bufferEntries(ifstream &idx_file, MPI_File fh);
 
@@ -49,24 +50,39 @@ int main(int argc, char ** argv)
     MPI_Comm_rank (MPI_COMM_WORLD, &rank);/* get current process id */
     MPI_Comm_size (MPI_COMM_WORLD, &size);/* get number of processes */
 
-    if ( argc != 3 ) {
+    if ( argc != 4 ) {
         if ( rank == 0 ) {
             printf("Usage: mpirun -np num-of-proc-in-map-file %s " 
-                   "mapfile output-file\n", argv[0] );
+                   "mapfile output-file r/w\n", argv[0] );
         }
         MPI_Finalize();
         return 0;
     }
 
-   
+    mode = argv[3][0];
+    if ( rank == 0 ) {
+        if ( mode == 'w' ) {
+            cout << "To Write File" << endl;
+        } else {
+            cout << "To Read File" << endl;
+        }  
+    }
     printf( "Hello from process %d of %d\n", rank, size );
 
     //all ranks open a file for writing together
     start = MPI_Wtime();
-    MPI_File_open( MPI_COMM_WORLD, argv[2], 
-                  MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh );
+    if ( mode == 'w' ) {
+        rc = MPI_File_open( MPI_COMM_WORLD, argv[2], 
+                      MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh );
+    } else {
+        rc = MPI_File_open( MPI_COMM_WORLD, argv[2], 
+                       MPI_MODE_RDONLY, MPI_INFO_NULL, &fh );
+    }
     end = MPI_Wtime();
     openTime = end - start;
+    
+    assert(rc == MPI_SUCCESS);
+
 
     if ( rank == 0 ) {
         // Rank 0 opens map file
@@ -96,8 +112,13 @@ int main(int argc, char ** argv)
                 assert(buf.size()==entry.length);
                 
                 start = MPI_Wtime();
-                ret = MPI_File_write_at(fh, entry.logical_offset,
-                        (void *) buf.c_str(),  entry.length, MPI_CHAR, &stat);
+                if ( mode == 'w' ) {
+                    ret = MPI_File_write_at(fh, entry.logical_offset,
+                            (void *) buf.c_str(),  entry.length, MPI_CHAR, &stat);
+                } else {
+                    ret = MPI_File_read_at(fh, entry.logical_offset,
+                            &buf[0],  entry.length, MPI_CHAR, &stat);
+                }
                 end = MPI_Wtime();
                 rwTime += end - start;
 
@@ -149,11 +170,12 @@ int main(int argc, char ** argv)
     MPI_Reduce( &totalBytes, &aggTotalBytes, 1,
                 MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD );
     if ( rank == 0 ) {
+        cout << "----------- Final Performance ----------" << endl;
         cout << "Total Time: " << aggTotalTime << endl
              << "Total Bytes: " << aggTotalBytes << endl;
         double bandwidth =aggTotalBytes/aggTotalTime;
-        cout << "Bandwidth: " << bandwidth << "bytes/sec " 
-             << bandwidth/(1024*1024) << "MB/sec" << endl;
+        cout << "Bandwidth: " //<< bandwidth << "bytes/sec " 
+             << bandwidth/(1024*1024) << " MB/sec" << endl;
     }
 
 
@@ -262,11 +284,16 @@ void bufferEntries(ifstream &idx_file, MPI_File fh)
             assert(buf.size()==h_entry.length);
             
             start = MPI_Wtime();
-            ret = MPI_File_write_at(fh, h_entry.logical_offset, (void *)buf.c_str(), 
-                              h_entry.length, MPI_CHAR, &stat);
+            if ( mode == 'w' ) {
+                ret = MPI_File_write_at(fh, h_entry.logical_offset, (void *)buf.c_str(), 
+                                  h_entry.length, MPI_CHAR, &stat);
+            } else {
+                ret = MPI_File_read_at(fh, h_entry.logical_offset,
+                        &buf[0],  h_entry.length, MPI_CHAR, &stat);
+            }
             end = MPI_Wtime();
             rwTime += end - start;
-            
+           
             assert(ret == MPI_SUCCESS);
             
             // Get bytes written
