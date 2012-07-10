@@ -33,6 +33,9 @@ using namespace std;
 
 int rank, size;
 MPI_Status stat;
+double openTime = 0, rwTime = 0, closeTime = 0;
+double start, end;
+off_t totalBytes = 0;
 
 void bufferEntries(ifstream &idx_file, MPI_File fh);
 
@@ -41,7 +44,6 @@ int main(int argc, char ** argv)
     int rc;
     ifstream idx_file;
     MPI_File fh;
- 
 
     MPI_Init (&argc, &argv);/* starts MPI */
     MPI_Comm_rank (MPI_COMM_WORLD, &rank);/* get current process id */
@@ -60,8 +62,11 @@ int main(int argc, char ** argv)
     printf( "Hello from process %d of %d\n", rank, size );
 
     //all ranks open a file for writing together
+    start = MPI_Wtime();
     MPI_File_open( MPI_COMM_WORLD, argv[2], 
                   MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh );
+    end = MPI_Wtime();
+    openTime = end - start;
 
     if ( rank == 0 ) {
         // Rank 0 opens map file
@@ -79,6 +84,7 @@ int main(int argc, char ** argv)
         static int mywrites = 0;
         while (1) {
             int flag = 0; //1: has entry comming, 0:no entry comming
+            int ret;
             rc = MPI_Recv( &flag, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &stat );
             if ( flag == 1 ) {
                 // entry is comming
@@ -88,8 +94,20 @@ int main(int argc, char ** argv)
                 
                 string buf(entry.length, 'a'+rank);
                 assert(buf.size()==entry.length);
-                MPI_File_write_at(fh, entry.logical_offset,
+                
+                start = MPI_Wtime();
+                ret = MPI_File_write_at(fh, entry.logical_offset,
                         (void *) buf.c_str(),  entry.length, MPI_CHAR, &stat);
+                end = MPI_Wtime();
+                rwTime += end - start;
+
+                assert(ret == MPI_SUCCESS);
+                
+                // Get bytes written
+                int cnt;
+                MPI_Get_count( &stat, MPI_CHAR, &cnt );
+                totalBytes += cnt;
+                
                 mywrites++;
                 if ( mywrites % 1024 == 0 ) {
                     cout <<".";
@@ -108,11 +126,37 @@ int main(int argc, char ** argv)
                 break;
             }
         }
-
     }
    
     cout<<"End of the program"<<endl;
+    
+    start = MPI_Wtime();
     MPI_File_close(&fh);
+    end = MPI_Wtime();
+    closeTime = end - start;
+
+    cout << "Open Time: " << openTime << endl
+         << "rw Time: " << rwTime << endl
+         << "Close Time: " << closeTime << endl
+         << "total bytes: " << totalBytes << endl;
+
+    double totaltime = openTime + rwTime + closeTime;
+    double aggTotalTime = 0;
+
+    MPI_Reduce( &totaltime, &aggTotalTime, 1, 
+                MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD );
+    off_t aggTotalBytes = 0;
+    MPI_Reduce( &totalBytes, &aggTotalBytes, 1,
+                MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD );
+    if ( rank == 0 ) {
+        cout << "Total Time: " << aggTotalTime << endl
+             << "Total Bytes: " << aggTotalBytes << endl;
+        double bandwidth =aggTotalBytes/aggTotalTime;
+        cout << "Bandwidth: " << bandwidth << "bytes/sec " 
+             << bandwidth/(1024*1024) << "MB/sec" << endl;
+    }
+
+
     MPI_Finalize();
     return 0;
 }
@@ -211,12 +255,27 @@ void bufferEntries(ifstream &idx_file, MPI_File fh)
         if ( h_entry.id == 0 ) {
             //if it is rank0's job, just do it
             static int mywrites = 0;
-            
+            int ret;
+
             string buf(h_entry.length, 'a'+rank);
             //cout << buf << endl;
             assert(buf.size()==h_entry.length);
-            MPI_File_write_at(fh, h_entry.logical_offset, (void *)buf.c_str(), 
+            
+            start = MPI_Wtime();
+            ret = MPI_File_write_at(fh, h_entry.logical_offset, (void *)buf.c_str(), 
                               h_entry.length, MPI_CHAR, &stat);
+            end = MPI_Wtime();
+            rwTime += end - start;
+            
+            assert(ret == MPI_SUCCESS);
+            
+            // Get bytes written
+            int cnt;
+            MPI_Get_count( &stat, MPI_CHAR, &cnt );
+            totalBytes += cnt;
+
+            
+            
             mywrites++;
             
             /*
