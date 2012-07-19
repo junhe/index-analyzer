@@ -4,7 +4,7 @@ OBJS=main.o
 CXXFLAGS=-D_FILE_OFFSET_BITS=64 
 CXX=mpicxx
 INCLUDES=
-LIBS=-lm -lrt -L/home/manio/installs/plfs-dev/lib -lplfs 
+LIBS=-lm -lrt -L/home/jh/installs/plfs-dev/lib -lplfs 
 #LDFLAGS=
 LDFLAGS=
 xmain:${OBJS}
