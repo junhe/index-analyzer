@@ -97,7 +97,7 @@ int main(int argc, char ** argv)
         idx_file.close();
     } else {
         // other ranks just receive offset and length from rank 0
-        static int mywrites = 0;
+        //static int mywrites = 0;
         while (1) {
             int flag = 0; //1: has entry comming, 0:no entry comming
             int ret;
@@ -129,11 +129,13 @@ int main(int argc, char ** argv)
                 MPI_Get_count( &stat, MPI_CHAR, &cnt );
                 totalBytes += cnt;
                 
+                /*  
                 mywrites++;
                 if ( mywrites % 1024 == 0 ) {
                     cout <<".";
                     fflush(stdout);
                 }
+                */
 
                 /*
                 cout << "[" << rank << "] [" << entry.id << "]: " 
@@ -276,7 +278,7 @@ void bufferEntries(ifstream &idx_file, MPI_File fh)
 
         if ( h_entry.id == 0 ) {
             //if it is rank0's job, just do it
-            static int mywrites = 0;
+            //static int mywrites = 0;
             int ret;
 
             string buf(h_entry.length, 'a'+rank);
@@ -303,7 +305,7 @@ void bufferEntries(ifstream &idx_file, MPI_File fh)
 
             
             
-            mywrites++;
+            //mywrites++;
             
             /*
             cout << "[" << rank << "] [" << h_entry.id << "]: " 
@@ -311,10 +313,12 @@ void bufferEntries(ifstream &idx_file, MPI_File fh)
                  << h_entry.physical_offset << ", "
                  << h_entry.length << endl;
             */
+            /* 
             if (mywrites % 1024 == 0) {
                 cout <<".";
                 fflush(stdout);
             }
+            */
         } else {
             flag = 1;
             MPI_Send(&flag, 1, MPI_INT, h_entry.id, 1, MPI_COMM_WORLD);
